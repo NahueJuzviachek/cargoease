@@ -1,27 +1,6 @@
 from django.shortcuts import render, HttpResponse
+from django.contrib.auth.decorators import login_required
 
-# Create your views here.
-
+@login_required
 def home(request):
-    
-    return HttpResponse("home")
-
-def clientes(request):
-    
-    return HttpResponse("clientes")
-
-def conductores(request):
-    
-    return HttpResponse("conductores")
-
-def vehiculos(request):
-    
-    return HttpResponse("vehiuclos")
-
-def reportes(request):
-    
-    return HttpResponse("reportes")
-
-def login(request):
-    
-    return HttpResponse("login")
+    return render(request, "home.html")
