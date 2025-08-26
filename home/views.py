@@ -21,3 +21,7 @@ def vehiculos(request):
 def reportes(request):
     
     return HttpResponse("reportes")
+
+def login(request):
+    
+    return HttpResponse("login")
