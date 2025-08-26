@@ -71,6 +71,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cargoease.wsgi.application'
 
+LOGIN_URL = 'login'            # el nombre de tu ruta de login
+LOGIN_REDIRECT_URL = 'home'    # adonde va tras loguearse
+LOGOUT_REDIRECT_URL = 'login'  # adonde va tras cerrar sesión
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
