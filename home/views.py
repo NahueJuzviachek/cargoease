@@ -6,17 +6,17 @@ def home(request):
     return render(request, "home/home.html")
 
 def clientes(request):
-    return render(request, "clientes.html")
+    return render(request, "clientes/clientes.html")
     
 def conductores(request):
-    return render(request, "conductores.html")
+    return render(request, "conductores/conductores.html")
 
 def login(request):
     return render(request, "login.html")
 
 def vehiculos(request):
-    return render(request, "vehiculos.html")
+    return render(request, "vehiculos/vehiculos.html")
 
 def reportes(request):
-    return render(request, "reportes.html")
+    return render(request, "reportes/reportes.html")
 
