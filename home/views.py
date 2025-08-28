@@ -11,9 +11,6 @@ def clientes(request):
 def conductores(request):
     return render(request, "conductores/conductores.html")
 
-def login(request):
-    return render(request, "login.html")
-
 def vehiculos(request):
     return render(request, "vehiculos/vehiculos.html")
 
