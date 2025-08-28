@@ -1,0 +1,11 @@
+/* Navbar */
+.navbar-ce{
+    background-color:#FFF3DF;             
+    --bs-navbar-color:#C08C62;          
+    --bs-navbar-hover-color:#A06F45;     
+    --bs-navbar-active-color:#A06F45;      
+    --bs-navbar-brand-color:#C08C62;      
+    --bs-navbar-brand-hover-color:#A06F45; 
+    --bs-navbar-toggler-border-color:#C08C62; 
+  }
+  
