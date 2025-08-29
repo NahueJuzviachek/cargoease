@@ -1,21 +1,32 @@
 /* Estilo general */
 body {
     background-color: #c9a97a;
+    /* color de fondo */
     font-family: 'Arial', sans-serif;
     display: flex;
     justify-content: center;
+    /* centra horizontal */
     align-items: center;
+    /* centra vertical */
     height: 100vh;
     margin: 0;
 }
 
+/* Contenedor principal */
 .login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    width: 300px;
+    width: 100%;
+    max-width: 500px;
+    padding: 30px;
 }
 
+/* Logo más grande */
 .logo {
-    width: 100px;
+    width: 300px;
+    max-width: 100%;
     margin-bottom: 40px;
 }
 
@@ -40,6 +51,8 @@ body {
 .input-group {
     position: relative;
     margin-bottom: 20px;
+    width: 100%;
+    /* ocupa todo el ancho */
 }
 
 .input-group .icon {
@@ -47,39 +60,35 @@ body {
     top: 50%;
     left: 12px;
     transform: translateY(-50%);
-    font-size: 16px;
-    color: white;
-    opacity: 0.7;
+    font-size: 18px;
+    color: #9c8a75;
 }
 
 .input-group input {
     width: 100%;
     padding: 12px 12px 12px 40px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 2px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
     background: transparent;
-    color: white;
-    font-size: 14px;
+    color: #333;
+    font-size: 15px;
     outline: none;
-}
-
-.input-group input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
 }
 
 /* Botón */
 .btn-submit {
     width: 100%;
-    padding: 12px 0;
+    padding: 14px 0;
     background: white;
     border: none;
-    border-radius: 2px;
-    color: #c9a97a;
+    border-radius: 3px;
+    color: #9c8a75;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 15px;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     transition: background-color 0.3s ease;
+    margin-top: 10px;
 }
 
 .btn-submit:hover {
@@ -90,7 +99,7 @@ body {
 .forgot-password {
     display: block;
     margin-top: 15px;
-    font-size: 12px;
+    font-size: 13px;
     color: white;
     opacity: 0.75;
     text-decoration: none;
