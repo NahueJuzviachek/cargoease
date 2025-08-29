@@ -5,15 +5,12 @@ from django.contrib.auth.decorators import login_required
 def home(request):
     return render(request, "home/home.html")
 
-def clientes(request):
-    return render(request, "clientes/clientes.html")
-    
 def conductores(request):
-    return render(request, "conductores/conductores.html")
+    return render(request, "home/conductores.html")
 
 def vehiculos(request):
-    return render(request, "vehiculos/vehiculos.html")
+    return render(request, "home/vehiculos.html")
 
 def reportes(request):
-    return render(request, "reportes/reportes.html")
+    return render(request, "home/reportes.html")
 

@@ -1,9 +1,39 @@
-{% extends "home/base.html "%}
-
+{% extends "home/base.html" %}
 {% load static %}
 
 {% block content %}
 
-<th1> holaaa </th1>
+<link rel="stylesheet" href="{%static 'css/index.css'%}"/>
 
+<div class="container my-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="table-responsive">
+        <table id="datatable-clientes" class="table table-striped">
+          <caption>CLIENTES</caption>
+          <thead>
+            <tr>
+              <th class="centered">Nombre</th>
+              <th class="centered">Destino</th>
+              <th class="centered">Divisa</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody_clientes"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Si tu base.html NO trae estos scripts, cargalos acá -->
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/2.3.3/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/2.3.3/js/dataTables.bootstrap5.js"></script>
+
+<!-- Tu JS -->
+<script src="{% static 'js/index.js' %}"></script>
 {% endblock %}
+
+
+
