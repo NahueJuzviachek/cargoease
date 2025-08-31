@@ -1,0 +1,80 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}"/>
+
+<div class="container my-4">
+  <div class="row">
+    <div class="col-12 text-center">
+      <h1 class="titulo-clientes">VEHÍCULOS</h1>
+    </div>
+  </div>
+
+  <form method="get" class="d-flex justify-content-center my-3">
+    <div class="input-group" style="max-width: 600px; width: 100%;">
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por marca, modelo, año, dominio o remolque...">
+      <button class="btn btn-primary" type="submit">Buscar</button>
+    </div>
+    <div class="ms-3">
+      <a class="btn btn-success" href="{% url 'vehiculo_crear' %}">Agregar</a>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th class="centered">Marca</th>
+          <th class="centered">Modelo</th>
+          <th class="centered">Año</th>
+          <th class="centered">Dominio</th>
+          <th class="centered">Dominio remolque</th>
+          <th class="centered">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vehiculos %}
+          <tr>
+            <td class="centered">{{ v.marca }}</td>
+            <td class="centered">{{ v.modelo }}</td>
+            <td class="centered">{{ v.anio }}</td>
+            <td class="centered">{{ v.dominio }}</td>
+            <td class="centered">{{ v.dominio_remolque|default:"—" }}</td>
+            <td class="centered">
+              <a class="btn btn-sm btn-primary" href="{% url 'vehiculo_editar' v.pk %}">Modificar</a>
+              <a class="btn btn-sm btn-danger"  href="{% url 'vehiculo_eliminar' v.pk %}">Eliminar</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-center">No hay vehículos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if is_paginated %}
+  <nav aria-label="Paginación">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?q={{ q }}&page=1">Primera</a></li>
+        <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.previous_page_number }}">Anterior</a></li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">Primera</span></li>
+        <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+      {% endif %}
+
+      <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.next_page_number }}">Siguiente</a></li>
+        <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.paginator.num_pages }}">Última</a></li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+        <li class="page-item disabled"><span class="page-link">Última</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

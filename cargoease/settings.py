@@ -37,10 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'clientes',
-    'login',
     'home',
+    'login',
+    'clientes',
     'ubicaciones',
+    'conductores',
+    'vehiculos',
 ]
 
 MIDDLEWARE = [
@@ -86,6 +88,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'APP_DIRS': True,  
     }
 }
 
