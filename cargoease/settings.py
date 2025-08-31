@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'login',
     'clientes',
     'ubicaciones',
-    'conductores',
     'vehiculos',
 ]
 

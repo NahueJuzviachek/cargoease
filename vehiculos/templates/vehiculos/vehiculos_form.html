@@ -14,35 +14,37 @@
     {{ form.non_field_errors }}
 
     <div class="mb-3">
-      <label class="form-label">{{ form.marca.label }}</label>
+      <label class="form-label" for="{{ form.marca.id_for_label }}">{{ form.marca.label }}</label>
       {{ form.marca }}
+      {% if form.marca.help_text %}<div class="form-text">{{ form.marca.help_text|safe }}</div>{% endif %}
       {{ form.marca.errors }}
     </div>
 
     <div class="mb-3">
-      <label class="form-label">{{ form.modelo.label }}</label>
+      <label class="form-label" for="{{ form.modelo.id_for_label }}">{{ form.modelo.label }}</label>
       {{ form.modelo }}
+      {% if form.modelo.help_text %}<div class="form-text">{{ form.modelo.help_text|safe }}</div>{% endif %}
       {{ form.modelo.errors }}
     </div>
 
     <div class="mb-3">
-      <label class="form-label">{{ form.anio.label }}</label>
-      {{ form.anio }}
-      <div class="form-text">Ingrese el año de fabricación (1900 – {{ now|date:"Y"|add:"+1" }})</div>
-      {{ form.anio.errors }}
+      <label class="form-label" for="{{ form.anio_fabricacion.id_for_label }}">{{ form.anio_fabricacion.label }}</label>
+      {{ form.anio_fabricacion }}
+      {% if form.anio_fabricacion.help_text %}<div class="form-text">{{ form.anio_fabricacion.help_text|safe }}</div>{% endif %}
+      {{ form.anio_fabricacion.errors }}
     </div>
 
     <div class="mb-3">
-      <label class="form-label">{{ form.dominio.label }}</label>
+      <label class="form-label" for="{{ form.dominio.id_for_label }}">{{ form.dominio.label }}</label>
       {{ form.dominio }}
-      <div class="form-text">Formato: AA123BB (nuevo) o ABC123 (viejo)</div>
+      {% if form.dominio.help_text %}<div class="form-text">{{ form.dominio.help_text|safe }}</div>{% endif %}
       {{ form.dominio.errors }}
     </div>
 
     <div class="mb-3">
-      <label class="form-label">{{ form.dominio_remolque.label }}</label>
+      <label class="form-label" for="{{ form.dominio_remolque.id_for_label }}">{{ form.dominio_remolque.label }}</label>
       {{ form.dominio_remolque }}
-      <div class="form-text">Opcional. Formato: AA123BB o ABC123</div>
+      {% if form.dominio_remolque.help_text %}<div class="form-text">{{ form.dominio_remolque.help_text|safe }}</div>{% endif %}
       {{ form.dominio_remolque.errors }}
     </div>
 
@@ -53,3 +55,5 @@
   </form>
 </div>
 {% endblock %}
+
+
