@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 
 def login_view(request):
@@ -14,9 +15,9 @@ def login_view(request):
             login(request, user)
             return redirect("home")
         else:
-            error = "Usuario o contraseña incorrectos."
+            error = 'Usuario o Contraseña incorrectos'
 
-    return render(request, "login.html", {"error": error})
+    return render(request, "/login/templates/registration/login.html", {"error": error})
 
 def logout_view(request):
     logout(request)
