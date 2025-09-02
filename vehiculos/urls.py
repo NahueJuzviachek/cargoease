@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
-    VehiculoListView, VehiculoCreateView, VehiculoUpdateView, VehiculoDeleteView
+    VehiculoListView, VehiculoCreateView,
+    VehiculoUpdateView, VehiculoDeleteView
 )
 
 urlpatterns = [
@@ -9,4 +10,3 @@ urlpatterns = [
     path("<int:pk>/editar/", VehiculoUpdateView.as_view(), name="vehiculo_editar"),
     path("<int:pk>/eliminar/", VehiculoDeleteView.as_view(), name="vehiculo_eliminar"),
 ]
-
