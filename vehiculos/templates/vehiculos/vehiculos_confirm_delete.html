@@ -7,7 +7,7 @@
 <div class="container my-4" style="max-width: 720px;">
   <h2 class="titulo-clientes text-center">Eliminar Vehículo</h2>
   <div class="alert alert-warning mt-4">
-    ¿Seguro que querés eliminar <strong>{{ object }}</strong>? Esta acción no se puede deshacer.
+    ¿Seguro que querés eliminar <strong>{{ object.marca }} {{ object.modelo }} {{ object.anio_fabricacion }} ({{ object.dominio }})</strong>? Esta acción no se puede deshacer.
   </div>
   <form method="post" class="d-flex gap-2">
     {% csrf_token %}
@@ -16,5 +16,3 @@
   </form>
 </div>
 {% endblock %}
-
-

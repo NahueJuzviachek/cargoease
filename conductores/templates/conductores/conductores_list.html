@@ -1,0 +1,58 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}"/>
+
+<div class="container my-4">
+  <div class="row">
+    <div class="col-12 text-center">
+      <h1 class="titulo-clientes">CONDUCTORES</h1>
+    </div>
+  </div>
+
+  <!-- Buscador -->
+  <form method="get" class="d-flex justify-content-center my-3">
+    <div class="input-group" style="max-width: 500px; width: 100%;">
+      <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar por nombre...">
+      <button class="btn btn-primary" type="submit">Buscar</button>
+    </div>
+    <div class="ms-3">
+      <a class="btn btn-success" href="{% url 'conductor_crear' %}">Agregar</a>
+    </div>
+  </form>
+
+  <!-- Tabla -->
+  <div class="table-responsive mt-3">
+    <table class="table table-striped text-center">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>DNI</th>
+          <th>Vehículo</th>
+          <th>Dominio</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for conductor in conductores %}
+        <tr>
+          <td>{{ conductor.nombreApellido }}</td>
+          <td>{{ conductor.dni }}</td>
+          <td>{{ conductor.vehiculo.marca }} {{ conductor.vehiculo.modelo }}</td>
+          <td>{{ conductor.dominio }}</td>
+          <td>
+            <a class="btn btn-sm btn-warning" href="{% url 'conductor_editar' conductor.pk %}">Editar</a>
+            <a class="btn btn-sm btn-danger" href="{% url 'conductor_eliminar' conductor.pk %}">Eliminar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No hay conductores cargados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+

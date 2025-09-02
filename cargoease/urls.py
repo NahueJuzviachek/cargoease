@@ -7,5 +7,6 @@ urlpatterns = [
     path('', include('login.urls')),  # asumiendo que tu app se llama "login"
     path('', include('home.urls')),
     path('clientes/', include('clientes.urls')),
-    path('vehiculos/', include('vehiculos.urls')),
+    path('conductores/', include('conductores.urls')),
+    path("vehiculos/", include("vehiculos.urls")),
 ]
