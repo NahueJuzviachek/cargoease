@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/index.css' %}"/>
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
 
 <div class="container my-4">
   <div class="row">
@@ -30,8 +30,9 @@
             <tr>
               <th class="centered">Nombre</th>
               <th class="centered">Correo</th>
+              <th class="centered">País</th>
+              <th class="centered">Provincia</th>
               <th class="centered">Localidad</th>
-              <th class="centered">Divisa</th>
               <th class="centered">Acciones</th>
             </tr>
           </thead>
@@ -40,15 +41,18 @@
             <tr>
               <td class="centered">{{ c.nombre }}</td>
               <td class="centered">{{ c.correo }}</td>
-              <td class="centered">{{ c.localidad }}</td>
-              <td class="centered">{{ c.get_divisa_display }}</td>
+              <td class="centered">{{ c.pais.nombre }}</td>
+              <td class="centered">{{ c.provincia.nombre }}</td>
+              <td class="centered">{{ c.localidad.nombre }}</td>
               <td class="centered">
                 <a class="btn btn-sm btn-primary" href="{% url 'cliente_editar' c.pk %}">Modificar</a>
-                <a class="btn btn-sm btn-danger"  href="{% url 'cliente_eliminar' c.pk %}">Eliminar</a>                
+                <a class="btn btn-sm btn-danger" href="{% url 'cliente_eliminar' c.pk %}">Eliminar</a>
               </td>
             </tr>
             {% empty %}
-            <tr><td colspan="5" class="text-center">No hay clientes.</td></tr>
+            <tr>
+              <td colspan="6" class="text-center">No hay clientes.</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
@@ -59,21 +63,25 @@
       <nav aria-label="Paginación">
         <ul class="pagination justify-content-center">
           {% if page_obj.has_previous %}
-            <li class="page-item"><a class="page-link" href="?q={{ q }}&page=1">Primera</a></li>
-            <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.previous_page_number }}">Anterior</a></li>
+          <li class="page-item"><a class="page-link" href="?q={{ q }}&page=1">Primera</a></li>
+          <li class="page-item"><a class="page-link"
+              href="?q={{ q }}&page={{ page_obj.previous_page_number }}">Anterior</a></li>
           {% else %}
-            <li class="page-item disabled"><span class="page-link">Primera</span></li>
-            <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+          <li class="page-item disabled"><span class="page-link">Primera</span></li>
+          <li class="page-item disabled"><span class="page-link">Anterior</span></li>
           {% endif %}
 
-          <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+          <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages
+              }}</span></li>
 
           {% if page_obj.has_next %}
-            <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.next_page_number }}">Siguiente</a></li>
-            <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.paginator.num_pages }}">Última</a></li>
+          <li class="page-item"><a class="page-link"
+              href="?q={{ q }}&page={{ page_obj.next_page_number }}">Siguiente</a></li>
+          <li class="page-item"><a class="page-link"
+              href="?q={{ q }}&page={{ page_obj.paginator.num_pages }}">Última</a></li>
           {% else %}
-            <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
-            <li class="page-item disabled"><span class="page-link">Última</span></li>
+          <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+          <li class="page-item disabled"><span class="page-link">Última</span></li>
           {% endif %}
         </ul>
       </nav>

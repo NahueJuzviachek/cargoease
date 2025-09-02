@@ -1,24 +1,16 @@
 from django.db import models
+from ubicaciones.models import Pais, Provincia, Localidad  # 👈 importar de tu app
 
-# Create your models here.
-
-class Cliente(models.Model):  # tabla clientes
-    # Choices para el <select> de divisa
-    DIVISA_PESO  = "Peso"
-    DIVISA_REAL  = "Real"
-    DIVISA_DOLAR = "Dolar"
-    DIVISAS = [
-        (DIVISA_PESO, "Peso"),
-        (DIVISA_REAL, "Real"),
-        (DIVISA_DOLAR, "Dolar"),
-    ]
-
+class Cliente(models.Model):
     nombre = models.CharField(max_length=50)
     correo = models.EmailField("Correo", max_length=254, unique=True)
-    localidad = models.CharField(max_length=50, default="Indicar")
-    divisa = models.CharField(max_length=50, choices=DIVISAS, default=DIVISA_PESO)
 
-    class Meta:  # nombre de la tabla
+    # Nuevos FK a ubicaciones
+    pais = models.ForeignKey(Pais, on_delete=models.PROTECT, related_name="clientes", null=True, blank=True)
+    provincia = models.ForeignKey(Provincia, on_delete=models.PROTECT, related_name="clientes", null=True, blank=True)
+    localidad = models.ForeignKey(Localidad, on_delete=models.PROTECT, related_name="clientes", null=True, blank=True)
+
+    class Meta:
         db_table = 'tablaClientes'
         verbose_name = 'Cliente'
         verbose_name_plural = 'Clientes'
