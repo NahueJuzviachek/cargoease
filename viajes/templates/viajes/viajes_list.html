@@ -1,0 +1,123 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12 text-center">
+            <h1 class="titulo-clientes">VIAJES</h1>
+        </div>
+    </div>
+
+    <!-- 🔎 Buscador centrado -->
+    <form method="get" class="d-flex justify-content-center my-3">
+        <div class="input-group" style="max-width: 500px; width: 100%;">
+            <input type="text" name="q" value="{{ q }}" class="form-control"
+                placeholder="Buscar por vehículo, salida o destino..." />
+            <button class="btn btn-primary" type="submit">Buscar</button>
+        </div>
+        <div class="ms-3">
+            <a class="btn btn-success" href="">Agregar</a>
+        </div>
+    </form>
+
+    <div class="row mt-2">
+        <div class="col-12">
+            <div class="table-responsive">
+                <table class="table table-striped table-clientes">
+                    <thead>
+                        <tr>
+                            <th class="centered">Fecha</th>
+                            <th class="centered">Vehículo</th>
+                            <th class="centered">Salida</th>
+                            <th class="centered">Destino</th>
+                            <th class="centered">Distancia (km)</th>
+                            <th class="centered">Flete</th>
+                            <th class="centered">Viáticos (%)</th>
+                            <th class="centered">Gasto</th>
+                            <th class="centered">Ganancia</th>
+                            <th class="centered">Divisa</th>
+                            <th class="centered">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for v in viajes %}
+                        <tr>
+                            <td class="centered">{{ v.fecha|date:"d/m/Y" }}</td>
+                            <td class="centered">{{ v.vehiculo }}</td>
+                            <td class="centered">{{ v.salida }}</td>
+                            <td class="centered">{{ v.destino }}</td>
+                            <td class="centered">{{ v.distancia|floatformat:0 }}</td>
+
+                            <!-- Flete -->
+                            <td class="centered">
+                                {% firstof v.divisa.simbolo v.divisa.codigo %} {{ v.valor_flete|floatformat:2 }}
+                            </td>
+
+                            <td class="centered">{{ v.viaticos|floatformat:2 }}</td>
+
+                            <!-- Gasto (puede ser vacío) -->
+                            <td class="centered">
+                                {% if v.gasto %}
+                                {% firstof v.divisa.simbolo v.divisa.codigo %} {{ v.gasto|floatformat:2 }}
+                                {% else %}
+                                &mdash;
+                                {% endif %}
+                            </td>
+
+                            <!-- Ganancia -->
+                            <td class="centered">
+                                {% firstof v.divisa.simbolo v.divisa.codigo %} {{ v.ganancia_total|floatformat:2 }}
+                            </td>
+
+                            <td class="centered">{{ v.divisa.codigo }}</td>
+
+                            <td class="centered">
+                                <a class="btn btn-sm btn-primary" href="">Modificar</a>
+                                <a class="btn btn-sm btn-danger" href="">Eliminar</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="11" class="text-center">No hay viajes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {% if is_paginated %}
+            <nav aria-label="Paginación">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?q={{ q }}&page=1">Primera</a></li>
+                    <li class="page-item"><a class="page-link"
+                            href="?q={{ q }}&page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Primera</span></li>
+                    <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link"
+                            href="?q={{ q }}&page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                    <li class="page-item"><a class="page-link"
+                            href="?q={{ q }}&page={{ page_obj.paginator.num_pages }}">Última</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                    <li class="page-item disabled"><span class="page-link">Última</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

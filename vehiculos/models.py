@@ -1,9 +1,17 @@
 from django.db import models
+from datetime import date
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+def current_year():
+        return date.today().year
 
 class Vehiculo(models.Model):
     marca = models.CharField("Marca", max_length=60)
     modelo = models.CharField("Modelo", max_length=60)
-    anio_fabricacion = models.PositiveSmallIntegerField("Año de fabricación")
+    anio_fabricacion = models.PositiveIntegerField(
+    "Año de fabricación",
+    validators=[MinValueValidator(1900), MaxValueValidator(current_year)],
+)
     dominio = models.CharField("Dominio", max_length=10, unique=True, help_text="AA123BB o ABC123")
     dominio_remolque = models.CharField(
         "Dominio remolque",
