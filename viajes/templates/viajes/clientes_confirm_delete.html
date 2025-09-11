@@ -1,0 +1,29 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+
+<div class="container my-5" style="max-width: 600px;">
+    <div class="card shadow-sm">
+        <div class="card-body text-center">
+            <h2 class="mb-4 text-danger">Eliminar Viaje</h2>
+            <p class="mb-4">
+                ¿Estás seguro de que quieres eliminar este viaje?<br>
+                <strong>
+                    {{ object.fecha|date:"d/m/Y" }} – {{ object.vehiculo }}<br>
+                    {{ object.salida }} → {{ object.destino }}
+                </strong>
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'viajes_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+[
+    {
+        "model": "viajes.divisa",
+        "pk": 1,
+        "fields": {
+            "nombre": "Peso Argentino",
+            "codigo": "ARS",
+            "simbolo": "$"
+        }
+    },
+    {
+        "model": "viajes.divisa",
+        "pk": 2,
+        "fields": {
+            "nombre": "Dólar Estadounidense",
+            "codigo": "USD",
+            "simbolo": "US$"
+        }
+    },
+    {
+        "model": "viajes.divisa",
+        "pk": 3,
+        "fields": {
+            "nombre": "Real Brasileño",
+            "codigo": "BRL",
+            "simbolo": "R$"
+        }
+    },
+    {
+        "model": "viajes.divisa",
+        "pk": 4,
+        "fields": {
+            "nombre": "Euro",
+            "codigo": "EUR",
+            "simbolo": "€"
+        }
+    }
+]

@@ -4,8 +4,7 @@ from .views import (
     VehiculoUpdateView, VehiculoDeleteView
 )
 from viajes.views import (
-    ViajeListView, VehiculoViajeCreateView,
-    VehiculoViajeUpdateView, VehiculoViajeDeleteView
+    ViajeListView, VehiculoViajeCreateView, VehiculoViajeUpdateView, VehiculoViajeDeleteView
 )
 
 urlpatterns = [
@@ -14,7 +13,7 @@ urlpatterns = [
     path("<int:pk>/editar/", VehiculoUpdateView.as_view(), name="vehiculo_editar"),
     path("<int:pk>/eliminar/", VehiculoDeleteView.as_view(), name="vehiculo_eliminar"),
 
-    # Gestion de viajes por vehiculo
+    # Gestión de viajes por vehículo:
     path("<int:vehiculo_pk>/viajes/", ViajeListView.as_view(), name="vehiculo_viajes_list"),
     path("<int:vehiculo_pk>/viajes/crear/", VehiculoViajeCreateView.as_view(), name="vehiculo_viaje_crear"),
     path("<int:vehiculo_pk>/viajes/<int:pk>/editar/", VehiculoViajeUpdateView.as_view(), name="vehiculo_viaje_editar"),

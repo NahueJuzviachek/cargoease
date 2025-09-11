@@ -7,19 +7,19 @@
 <div class="container my-4">
     <div class="row">
         <div class="col-12 text-center">
-            <h1 class="titulo-clientes">VIAJES</h1>
+            <h1 class="titulo-clientes text-center">Viajes de {{ vehiculo }}</h1>
         </div>
     </div>
 
-    <!-- 🔎 Buscador centrado -->
+    <!-- 🔎 Buscador -->
     <form method="get" class="d-flex justify-content-center my-3">
         <div class="input-group" style="max-width: 500px; width: 100%;">
             <input type="text" name="q" value="{{ q }}" class="form-control"
-                placeholder="Buscar por vehículo, salida o destino..." />
+                placeholder="Buscar por salida o destino..." />
             <button class="btn btn-primary" type="submit">Buscar</button>
         </div>
         <div class="ms-3">
-            <a class="btn btn-success" href="">Agregar</a>
+            <a class="btn btn-success" href="{% url 'vehiculo_viaje_crear' vehiculo.pk %}">Agregar</a>
         </div>
     </form>
 
@@ -30,15 +30,14 @@
                     <thead>
                         <tr>
                             <th class="centered">Fecha</th>
-                            <th class="centered">Vehículo</th>
                             <th class="centered">Salida</th>
                             <th class="centered">Destino</th>
                             <th class="centered">Distancia (km)</th>
                             <th class="centered">Flete</th>
-                            <th class="centered">Viáticos (%)</th>
+                            <th class="centered">Conductor (%)</th>
+                            <th class="centered">Viáticos</th>
                             <th class="centered">Gasto</th>
                             <th class="centered">Ganancia</th>
-                            <th class="centered">Divisa</th>
                             <th class="centered">Acciones</th>
                         </tr>
                     </thead>
@@ -46,19 +45,24 @@
                         {% for v in viajes %}
                         <tr>
                             <td class="centered">{{ v.fecha|date:"d/m/Y" }}</td>
-                            <td class="centered">{{ v.vehiculo }}</td>
                             <td class="centered">{{ v.salida }}</td>
                             <td class="centered">{{ v.destino }}</td>
-                            <td class="centered">{{ v.distancia|floatformat:0 }}</td>
+                            <td class="centered">{{ v.distancia|floatformat:2 }}</td>
 
                             <!-- Flete -->
                             <td class="centered">
                                 {% firstof v.divisa.simbolo v.divisa.codigo %} {{ v.valor_flete|floatformat:2 }}
                             </td>
 
-                            <td class="centered">{{ v.viaticos|floatformat:2 }}</td>
+                            <!-- Conductor -->
+                            <td class="centered">{{ v.porcentaje_conductor|floatformat:2 }}</td>
 
-                            <!-- Gasto (puede ser vacío) -->
+                            <!-- Viáticos -->
+                            <td class="centered">
+                                {% firstof v.divisa.simbolo v.divisa.codigo %} {{ v.viaticos|floatformat:2 }}
+                            </td>
+
+                            <!-- Gasto -->
                             <td class="centered">
                                 {% if v.gasto %}
                                 {% firstof v.divisa.simbolo v.divisa.codigo %} {{ v.gasto|floatformat:2 }}
@@ -72,16 +76,16 @@
                                 {% firstof v.divisa.simbolo v.divisa.codigo %} {{ v.ganancia_total|floatformat:2 }}
                             </td>
 
-                            <td class="centered">{{ v.divisa.codigo }}</td>
-
                             <td class="centered">
-                                <a class="btn btn-sm btn-primary" href="">Modificar</a>
-                                <a class="btn btn-sm btn-danger" href="">Eliminar</a>
+                                <a class="btn btn-sm btn-primary"
+                                    href="{% url 'vehiculo_viaje_editar' vehiculo.pk v.pk %}">Modificar</a>
+                                <a class="btn btn-sm btn-danger"
+                                    href="{% url 'vehiculo_viaje_eliminar' vehiculo.pk v.pk %}">Eliminar</a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="11" class="text-center">No hay viajes.</td>
+                            <td colspan="10" class="text-center">No hay viajes.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
