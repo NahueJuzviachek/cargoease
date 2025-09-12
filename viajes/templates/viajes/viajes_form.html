@@ -20,6 +20,11 @@
                 {{ form.fecha }}
                 <div class="text-danger small">{{ form.fecha.errors }}</div>
             </div>
+            <div class="col-md-8">
+                <label class="form-label">{{ form.cliente.label }}</label>
+                {{ form.cliente }}
+                <div class="text-danger small">{{ form.cliente.errors }}</div>
+            </div>
         </div>
 
         <!-- Salida / Destino -->
@@ -29,17 +34,18 @@
                     <h5 class="mb-3">Salida</h5>
                     <div class="mb-3">
                         <label class="form-label">{{ form.salida_pais.label }}</label>
-                        {{ form.salida_pais }} <div class="text-danger small">{{ form.salida_pais.errors }}</div>
+                        {{ form.salida_pais }}
+                        <div class="text-danger small">{{ form.salida_pais.errors }}</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">{{ form.salida_provincia.label }}</label>
-                        {{ form.salida_provincia }} <div class="text-danger small">{{ form.salida_provincia.errors }}
-                        </div>
+                        {{ form.salida_provincia }}
+                        <div class="text-danger small">{{ form.salida_provincia.errors }}</div>
                     </div>
                     <div class="mb-0">
                         <label class="form-label">{{ form.salida_localidad.label }}</label>
-                        {{ form.salida_localidad }} <div class="text-danger small">{{ form.salida_localidad.errors }}
-                        </div>
+                        {{ form.salida_localidad }}
+                        <div class="text-danger small">{{ form.salida_localidad.errors }}</div>
                     </div>
                 </div>
             </div>
@@ -49,17 +55,18 @@
                     <h5 class="mb-3">Destino</h5>
                     <div class="mb-3">
                         <label class="form-label">{{ form.destino_pais.label }}</label>
-                        {{ form.destino_pais }} <div class="text-danger small">{{ form.destino_pais.errors }}</div>
+                        {{ form.destino_pais }}
+                        <div class="text-danger small">{{ form.destino_pais.errors }}</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">{{ form.destino_provincia.label }}</label>
-                        {{ form.destino_provincia }} <div class="text-danger small">{{ form.destino_provincia.errors }}
-                        </div>
+                        {{ form.destino_provincia }}
+                        <div class="text-danger small">{{ form.destino_provincia.errors }}</div>
                     </div>
                     <div class="mb-0">
                         <label class="form-label">{{ form.destino_localidad.label }}</label>
-                        {{ form.destino_localidad }} <div class="text-danger small">{{ form.destino_localidad.errors }}
-                        </div>
+                        {{ form.destino_localidad }}
+                        <div class="text-danger small">{{ form.destino_localidad.errors }}</div>
                     </div>
                 </div>
             </div>
@@ -75,11 +82,13 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">{{ form.divisa.label }}</label>
-                {{ form.divisa }} <div class="text-danger small">{{ form.divisa.errors }}</div>
+                {{ form.divisa }}
+                <div class="text-danger small">{{ form.divisa.errors }}</div>
             </div>
             <div class="col-md-3">
                 <label class="form-label">{{ form.valor_flete.label }}</label>
-                {{ form.valor_flete }} <div class="text-danger small">{{ form.valor_flete.errors }}</div>
+                {{ form.valor_flete }}
+                <div class="text-danger small">{{ form.valor_flete.errors }}</div>
             </div>
             <div class="col-md-3">
                 <label class="form-label">{{ form.porcentaje_conductor.label }}</label>
@@ -89,11 +98,13 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">{{ form.viaticos.label }}</label>
-                {{ form.viaticos }} <div class="text-danger small">{{ form.viaticos.errors }}</div>
+                {{ form.viaticos }}
+                <div class="text-danger small">{{ form.viaticos.errors }}</div>
             </div>
             <div class="col-md-3">
                 <label class="form-label">{{ form.gasto.label }}</label>
-                {{ form.gasto }} <div class="form-text">Opcional.</div>
+                {{ form.gasto }}
+                <div class="form-text">Opcional.</div>
                 <div class="text-danger small">{{ form.gasto.errors }}</div>
             </div>
         </div>

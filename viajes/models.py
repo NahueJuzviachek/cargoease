@@ -8,7 +8,7 @@ class Divisa(models.Model):
     simbolo = models.CharField(max_length=5, blank=True)
 
     class Meta:
-        db_table = 'tablaDivisa'  # lo dejo tal cual lo tenías
+        db_table = 'tablaDivisa'
         verbose_name = "Divisa"
         verbose_name_plural = "Divisas"
         ordering = ["codigo"]
@@ -21,6 +21,13 @@ class Viaje(models.Model):
     vehiculo = models.ForeignKey(
         "vehiculos.Vehiculo", on_delete=models.PROTECT,
         related_name="viajes", db_index=True
+    )
+
+    # 🔹 NUEVO: Cliente del viaje
+    cliente = models.ForeignKey(
+        "clientes.Cliente", on_delete=models.PROTECT,
+        related_name="viajes", db_index=True,
+        null=True, blank=True  # Si ya tenés datos, esto evita romper migración. Luego podés volverlo requerido.
     )
 
     fecha = models.DateField(db_index=True, help_text="Fecha del viaje.")
@@ -82,6 +89,7 @@ class Viaje(models.Model):
         verbose_name_plural = "Viajes"
         indexes = [
             models.Index(fields=["vehiculo"]),
+            models.Index(fields=["cliente"]),   # 🔹 NUEVO índice
             models.Index(fields=["salida"]),
             models.Index(fields=["destino"]),
             models.Index(fields=["fecha"]),
@@ -89,15 +97,15 @@ class Viaje(models.Model):
         ordering = ["-fecha", "-creado_en"]
 
     def __str__(self):
-        return f"Viaje #{self.pk} - {self.vehiculo} ({self.salida} → {self.destino}) {self.fecha}"
+        # Incluyo cliente si existe (por compatibilidad con null=True inicial)
+        cli = f" - {self.cliente}" if self.cliente_id else ""
+        return f"Viaje #{self.pk} - {self.vehiculo}{cli} ({self.salida} → {self.destino}) {self.fecha}"
 
-    # Monto que cobra el conductor
     def monto_conductor(self) -> Decimal:
         flete = self.valor_flete or Decimal("0")
         pct = self.porcentaje_conductor or Decimal("0")
         return flete * (pct / Decimal("100"))
 
-    # Ganancia = flete - conductor% - viáticos (monto) - gasto
     def calcular_ganancia(self) -> Decimal:
         flete = self.valor_flete or Decimal("0")
         conductor = self.monto_conductor()
@@ -107,7 +115,6 @@ class Viaje(models.Model):
         return ganancia if ganancia >= 0 else Decimal("0")
 
     def save(self, *args, **kwargs):
-        # recalcula siempre que haya flete y porcentaje del conductor definidos
         if self.valor_flete is not None and self.porcentaje_conductor is not None and self.viaticos is not None:
             self.ganancia_total = self.calcular_ganancia()
         super().save(*args, **kwargs)

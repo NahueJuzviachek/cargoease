@@ -11,7 +11,7 @@
         </div>
     </div>
 
-    <!-- 🔎 Buscador -->
+    <!-- Buscador -->
     <form method="get" class="d-flex justify-content-center my-3">
         <div class="input-group" style="max-width: 500px; width: 100%;">
             <input type="text" name="q" value="{{ q }}" class="form-control"
@@ -30,6 +30,7 @@
                     <thead>
                         <tr>
                             <th class="centered">Fecha</th>
+                            <th class="centered">Cliente</th>
                             <th class="centered">Salida</th>
                             <th class="centered">Destino</th>
                             <th class="centered">Distancia (km)</th>
@@ -45,6 +46,7 @@
                         {% for v in viajes %}
                         <tr>
                             <td class="centered">{{ v.fecha|date:"d/m/Y" }}</td>
+                            <td class="centered">{{ v.cliente|default:"—" }}</td> {# 👈 agregado #}
                             <td class="centered">{{ v.salida }}</td>
                             <td class="centered">{{ v.destino }}</td>
                             <td class="centered">{{ v.distancia|floatformat:2 }}</td>
@@ -85,7 +87,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="10" class="text-center">No hay viajes.</td>
+                            <td colspan="11" class="text-center">No hay viajes.</td> {# 👈 ajustado #}
                         </tr>
                         {% endfor %}
                     </tbody>

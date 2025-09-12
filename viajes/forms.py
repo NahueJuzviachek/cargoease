@@ -1,8 +1,8 @@
-# viajes/forms.py
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import Viaje
 from ubicaciones.models import Pais, Provincia, Localidad
+from clientes.models import Cliente  # 🔹 para ordenar el select
 
 class ViajeForm(forms.ModelForm):
     # -------- Salida (cascada) --------
@@ -50,6 +50,7 @@ class ViajeForm(forms.ModelForm):
         # Excluimos salida/destino originales para manejarlos con los campos auxiliares
         fields = [
             "fecha",
+            "cliente",              # 🔹 NUEVO
             "distancia",
             "divisa",
             "valor_flete",
@@ -60,7 +61,7 @@ class ViajeForm(forms.ModelForm):
         ]
         widgets = {
             "fecha": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-            "vehiculo": forms.Select(attrs={"class": "form-select"}),
+            "cliente": forms.Select(attrs={"class": "form-select"}),  # 🔹
             "distancia": forms.NumberInput(attrs={"step": "0.01", "min": "0", "class": "form-control"}),
             "divisa": forms.Select(attrs={"class": "form-select"}),
             "valor_flete": forms.NumberInput(attrs={"step": "0.01", "min": "0", "class": "form-control"}),
@@ -70,7 +71,7 @@ class ViajeForm(forms.ModelForm):
         }
         labels = {
             "fecha": "Fecha",
-            "vehiculo": "Vehículo",
+            "cliente": "Cliente",   # 🔹
             "distancia": "Distancia (km)",
             "divisa": "Divisa",
             "valor_flete": "Valor del flete",
@@ -81,6 +82,9 @@ class ViajeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Ordenar clientes por nombre (y podrías filtrar activos si tenés ese flag)
+        self.fields["cliente"].queryset = Cliente.objects.all().order_by("nombre")
 
         # --- Si estamos editando, precargar cascadas ---
         if self.instance and self.instance.pk:
@@ -132,9 +136,11 @@ class ViajeForm(forms.ModelForm):
             if dprov:
                 self.fields["destino_localidad"].queryset = Localidad.objects.filter(provincia_id=dprov).order_by("nombre")
 
-    # Validación mínima: aseguramos localidad seleccionada
+    # Validación mínima
     def clean(self):
         cleaned = super().clean()
+        if not cleaned.get("cliente"):
+            raise ValidationError("Debes seleccionar un cliente.")
         if not cleaned.get("salida_localidad"):
             raise ValidationError("Debes seleccionar la localidad de salida.")
         if not cleaned.get("destino_localidad"):
@@ -146,6 +152,7 @@ class ViajeForm(forms.ModelForm):
         # Asignar FKs reales desde las cascadas
         instance.salida = self.cleaned_data["salida_localidad"]
         instance.destino = self.cleaned_data["destino_localidad"]
+        # Ojo: el vehiculo lo debe setear la view: form.instance.vehiculo = vehiculo
         if commit:
             instance.save()
         return instance
