@@ -1,0 +1,9 @@
+#map {
+    min-height: 300px;
+    height: 400px;
+    border-radius: 8px;
+}
+
+.leaflet-container {
+    font-family: inherit;
+}

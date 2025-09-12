@@ -1,3 +1,5 @@
+# viajes/views.py
+from django.conf import settings
 from django.urls import reverse
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
@@ -8,7 +10,18 @@ from .forms import ViajeForm
 from vehiculos.models import Vehiculo
 
 
-class ViajeListView(ListView):
+class ORSContextMixin:
+    """
+    Mixin para inyectar en el template la API key de OpenRouteService (ORS_API_KEY),
+    que usa el JS del mapa para calcular rutas alternativas.
+    """
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["ORS_API_KEY"] = getattr(settings, "ORS_API_KEY", "")  # <- clave para el front
+        return ctx
+
+
+class ViajeListView(ORSContextMixin, ListView):
     model = Viaje
     template_name = "viajes/viajes_list.html"
     context_object_name = "viajes"
@@ -42,7 +55,7 @@ class ViajeListView(ListView):
         return ctx
 
 
-class VehiculoViajeCreateView(CreateView):
+class VehiculoViajeCreateView(ORSContextMixin, CreateView):
     model = Viaje
     form_class = ViajeForm
     template_name = "viajes/viajes_form.html"
@@ -52,7 +65,8 @@ class VehiculoViajeCreateView(CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        form.instance.vehiculo = self.vehiculo  # ✅ lo fijamos acá
+        # Asociamos el viaje al vehículo del URL
+        form.instance.vehiculo = self.vehiculo
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -64,7 +78,7 @@ class VehiculoViajeCreateView(CreateView):
         return reverse("vehiculo_viajes_list", kwargs={"vehiculo_pk": self.vehiculo.pk})
 
 
-class VehiculoViajeUpdateView(UpdateView):
+class VehiculoViajeUpdateView(ORSContextMixin, UpdateView):
     model = Viaje
     form_class = ViajeForm
     template_name = "viajes/viajes_form.html"
@@ -83,13 +97,15 @@ class VehiculoViajeUpdateView(UpdateView):
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
+        # Si por algún motivo el form trae el campo 'vehiculo', lo bloqueamos visualmente
         if "vehiculo" in form.fields:
             form.fields["vehiculo"].widget.attrs["disabled"] = True
             form.fields["vehiculo"].initial = self.vehiculo
         return form
 
     def form_valid(self, form):
-        form.instance.vehiculo = self.vehiculo  # por las dudas
+        # Aseguramos la relación aunque el campo esté disabled
+        form.instance.vehiculo = self.vehiculo
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -101,7 +117,7 @@ class VehiculoViajeUpdateView(UpdateView):
         return reverse("vehiculo_viajes_list", kwargs={"vehiculo_pk": self.vehiculo.pk})
 
 
-class VehiculoViajeDeleteView(DeleteView):
+class VehiculoViajeDeleteView(ORSContextMixin, DeleteView):
     model = Viaje
     template_name = "viajes/viajes_confirm_delete.html"
 

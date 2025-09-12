@@ -19,7 +19,9 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="d-flex justify-content-center gap-3">
-                    <a href="{% url 'viajes_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <a href="{% url 'vehiculo_viajes_list' object.vehiculo.pk %}" class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
                     <button type="submit" class="btn btn-danger">Eliminar</button>
                 </div>
             </form>

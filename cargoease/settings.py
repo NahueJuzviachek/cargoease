@@ -130,6 +130,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjA4ZTE4MDBmNzY5ODQ2NTI5NGVlNjk0ZDg5ZTJhYmYwIiwiaCI6Im11cm11cjY0In0="
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -22,54 +22,44 @@
             </div>
         </div>
 
-        <!-- Salida / Destino en 2 columnas -->
+        <!-- Salida / Destino -->
         <div class="row g-4 mt-1">
-            <!-- Columna izquierda: Salida -->
             <div class="col-md-6">
                 <div class="border rounded p-3 h-100">
                     <h5 class="mb-3">Salida</h5>
-
                     <div class="mb-3">
                         <label class="form-label">{{ form.salida_pais.label }}</label>
-                        {{ form.salida_pais }}
-                        <div class="text-danger small">{{ form.salida_pais.errors }}</div>
+                        {{ form.salida_pais }} <div class="text-danger small">{{ form.salida_pais.errors }}</div>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">{{ form.salida_provincia.label }}</label>
-                        {{ form.salida_provincia }}
-                        <div class="text-danger small">{{ form.salida_provincia.errors }}</div>
+                        {{ form.salida_provincia }} <div class="text-danger small">{{ form.salida_provincia.errors }}
+                        </div>
                     </div>
-
                     <div class="mb-0">
                         <label class="form-label">{{ form.salida_localidad.label }}</label>
-                        {{ form.salida_localidad }}
-                        <div class="text-danger small">{{ form.salida_localidad.errors }}</div>
+                        {{ form.salida_localidad }} <div class="text-danger small">{{ form.salida_localidad.errors }}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Columna derecha: Destino -->
             <div class="col-md-6">
                 <div class="border rounded p-3 h-100">
                     <h5 class="mb-3">Destino</h5>
-
                     <div class="mb-3">
                         <label class="form-label">{{ form.destino_pais.label }}</label>
-                        {{ form.destino_pais }}
-                        <div class="text-danger small">{{ form.destino_pais.errors }}</div>
+                        {{ form.destino_pais }} <div class="text-danger small">{{ form.destino_pais.errors }}</div>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">{{ form.destino_provincia.label }}</label>
-                        {{ form.destino_provincia }}
-                        <div class="text-danger small">{{ form.destino_provincia.errors }}</div>
+                        {{ form.destino_provincia }} <div class="text-danger small">{{ form.destino_provincia.errors }}
+                        </div>
                     </div>
-
                     <div class="mb-0">
                         <label class="form-label">{{ form.destino_localidad.label }}</label>
-                        {{ form.destino_localidad }}
-                        <div class="text-danger small">{{ form.destino_localidad.errors }}</div>
+                        {{ form.destino_localidad }} <div class="text-danger small">{{ form.destino_localidad.errors }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -80,18 +70,16 @@
             <div class="col-md-3">
                 <label class="form-label">{{ form.distancia.label }}</label>
                 {{ form.distancia }}
-                <div class="form-text">Kilómetros recorridos.</div>
+                <div class="form-text">Kilómetros recorridos (se completa al trazar la ruta).</div>
                 <div class="text-danger small">{{ form.distancia.errors }}</div>
             </div>
             <div class="col-md-3">
                 <label class="form-label">{{ form.divisa.label }}</label>
-                {{ form.divisa }}
-                <div class="text-danger small">{{ form.divisa.errors }}</div>
+                {{ form.divisa }} <div class="text-danger small">{{ form.divisa.errors }}</div>
             </div>
             <div class="col-md-3">
                 <label class="form-label">{{ form.valor_flete.label }}</label>
-                {{ form.valor_flete }}
-                <div class="text-danger small">{{ form.valor_flete.errors }}</div>
+                {{ form.valor_flete }} <div class="text-danger small">{{ form.valor_flete.errors }}</div>
             </div>
             <div class="col-md-3">
                 <label class="form-label">{{ form.porcentaje_conductor.label }}</label>
@@ -99,94 +87,75 @@
                 <div class="form-text">Porcentaje (0–100).</div>
                 <div class="text-danger small">{{ form.porcentaje_conductor.errors }}</div>
             </div>
-
             <div class="col-md-3">
                 <label class="form-label">{{ form.viaticos.label }}</label>
-                {{ form.viaticos }}
-                <div class="form-text">Monto de viáticos.</div>
-                <div class="text-danger small">{{ form.viaticos.errors }}</div>
+                {{ form.viaticos }} <div class="text-danger small">{{ form.viaticos.errors }}</div>
             </div>
             <div class="col-md-3">
                 <label class="form-label">{{ form.gasto.label }}</label>
-                {{ form.gasto }}
-                <div class="form-text">Opcional.</div>
+                {{ form.gasto }} <div class="form-text">Opcional.</div>
                 <div class="text-danger small">{{ form.gasto.errors }}</div>
             </div>
         </div>
 
         <div class="d-flex gap-2 mt-4">
             <a class="btn btn-outline-secondary" href="{% url 'vehiculo_viajes_list' vehiculo.pk %}">Cancelar</a>
-            <button class="btn btn-success" type="submit"
-                href="{% url 'vehiculo_viajes_list' vehiculo.pk %}">Guardar</button>
+            <button class="btn btn-success" type="submit">Guardar</button>
         </div>
     </form>
 </div>
 
-<!-- Scripts para selects dependientes (Salida/Destino) -->
+<!-- Mapa -->
+<div class="card mt-4">
+    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+        <div>
+            <strong>Vista del recorrido</strong>
+            <small class="text-muted d-block">Elige una de las rutas alternativas</small>
+        </div>
+        <div id="route-meta" class="small text-muted"></div>
+    </div>
+    <div class="card-body p-0">
+        <div id="map" style="height: 400px;"></div>
+    </div>
+</div>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- Pasamos la API key al cliente -->
+<script>window.ORS_API_KEY = "{{ ORS_API_KEY|default:'' }}";</script>
+
+<!-- Estilos y lógica -->
+<link rel="stylesheet" href="{% static 'viajes/viajes_map.css' %}">
+<script src="{% static 'viajes/viajes_map.js' %}"></script>
+
+<!-- Los selects dependientes (los de AJAX) -->
 <script>
     (function () {
         const $ = (sel) => document.querySelector(sel);
+        const sPais = $("#id_salida_pais"), sProv = $("#id_salida_provincia"), sLoc = $("#id_salida_localidad");
+        const dPais = $("#id_destino_pais"), dProv = $("#id_destino_provincia"), dLoc = $("#id_destino_localidad");
 
-        // --- Salida ---
-        const sPais = $("#id_salida_pais");
-        const sProv = $("#id_salida_provincia");
-        const sLoc = $("#id_salida_localidad");
-
-        // --- Destino ---
-        const dPais = $("#id_destino_pais");
-        const dProv = $("#id_destino_provincia");
-        const dLoc = $("#id_destino_localidad");
-
-        function resetSelect(el, placeholder) {
-            if (!el) return;
-            el.innerHTML = "";
-            const opt = document.createElement("option");
-            opt.value = "";
-            opt.textContent = placeholder;
-            el.appendChild(opt);
+        function resetSelect(el, ph) {
+            if (!el) return; el.innerHTML = ""; const o = document.createElement("option"); o.value = ""; o.textContent = ph; el.appendChild(o);
         }
-
         async function cargarProvincias(paisId, selectProvincia) {
             if (!paisId) return resetSelect(selectProvincia, "— Seleccionar provincia —");
-            const res = await fetch(`{% url 'ajax_cargar_provincias' %}?pais=${paisId}`);
-            const data = await res.json();
+            const res = await fetch(`{% url 'ajax_cargar_provincias' %}?pais=${paisId}`); const data = await res.json();
             resetSelect(selectProvincia, "— Seleccionar provincia —");
-            data.forEach(p => {
-                const o = document.createElement("option");
-                o.value = p.id; o.textContent = p.nombre;
-                selectProvincia.appendChild(o);
-            });
+            data.forEach(p => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.nombre; selectProvincia.appendChild(o); });
         }
-
         async function cargarLocalidades(provId, selectLocalidad) {
             if (!provId) return resetSelect(selectLocalidad, "— Seleccionar localidad —");
-            const res = await fetch(`{% url 'ajax_cargar_localidades' %}?provincia=${provId}`);
-            const data = await res.json();
+            const res = await fetch(`{% url 'ajax_cargar_localidades' %}?provincia=${provId}`); const data = await res.json();
             resetSelect(selectLocalidad, "— Seleccionar localidad —");
-            data.forEach(l => {
-                const o = document.createElement("option");
-                o.value = l.id; o.textContent = l.nombre;
-                selectLocalidad.appendChild(o);
-            });
+            data.forEach(l => { const o = document.createElement("option"); o.value = l.id; o.textContent = l.nombre; selectLocalidad.appendChild(o); });
         }
-
-        // Listeners Salida
-        sPais?.addEventListener("change", async function () {
-            await cargarProvincias(this.value, sProv);
-            resetSelect(sLoc, "— Seleccionar localidad —");
-        });
-        sProv?.addEventListener("change", async function () {
-            await cargarLocalidades(this.value, sLoc);
-        });
-
-        // Listeners Destino
-        dPais?.addEventListener("change", async function () {
-            await cargarProvincias(this.value, dProv);
-            resetSelect(dLoc, "— Seleccionar localidad —");
-        });
-        dProv?.addEventListener("change", async function () {
-            await cargarLocalidades(this.value, dLoc);
-        });
+        sPais?.addEventListener("change", async function () { await cargarProvincias(this.value, sProv); resetSelect(sLoc, "— Seleccionar localidad —"); });
+        sProv?.addEventListener("change", async function () { await cargarLocalidades(this.value, sLoc); });
+        dPais?.addEventListener("change", async function () { await cargarProvincias(this.value, dProv); resetSelect(dLoc, "— Seleccionar localidad —"); });
+        dProv?.addEventListener("change", async function () { await cargarLocalidades(this.value, dLoc); });
     })();
 </script>
 {% endblock %}
