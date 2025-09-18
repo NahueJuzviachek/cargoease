@@ -1,0 +1,23 @@
+[
+    {
+        "model": "neumaticos.tiponeumatico",
+        "pk": 1,
+        "fields": {
+            "descripcion": "Nuevo"
+        }
+    },
+    {
+        "model": "neumaticos.tiponeumatico",
+        "pk": 2,
+        "fields": {
+            "descripcion": "Recapado"
+        }
+    },
+    {
+        "model": "neumaticos.tiponeumatico",
+        "pk": 3,
+        "fields": {
+            "descripcion": "Usado"
+        }
+    }
+]

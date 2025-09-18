@@ -3,16 +3,21 @@ from datetime import date
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 def current_year():
-        return date.today().year
+    return date.today().year
 
 class Vehiculo(models.Model):
     marca = models.CharField("Marca", max_length=60)
     modelo = models.CharField("Modelo", max_length=60)
     anio_fabricacion = models.PositiveIntegerField(
-    "Año de fabricación",
-    validators=[MinValueValidator(1900), MaxValueValidator(current_year)],
-)
-    dominio = models.CharField("Dominio", max_length=10, unique=True, help_text="AA123BB o ABC123")
+        "Año de fabricación",
+        validators=[MinValueValidator(1900), MaxValueValidator(current_year)],
+    )
+    dominio = models.CharField(
+        "Dominio",
+        max_length=10,
+        unique=True,
+        help_text="AA123BB o ABC123"
+    )
     dominio_remolque = models.CharField(
         "Dominio remolque",
         max_length=10,
@@ -20,6 +25,12 @@ class Vehiculo(models.Model):
         null=True,
         unique=True,   # múltiples NULL permitidos; si se completa, debe ser único
         help_text="Opcional. AA123BB o ABC123"
+    )
+    ejes = models.PositiveIntegerField(
+        "Cantidad de ejes",
+        default=5,  
+        validators=[MinValueValidator(1)],
+        help_text="Número de ejes que posee el vehículo"
     )
 
     class Meta:
@@ -30,4 +41,3 @@ class Vehiculo(models.Model):
 
     def __str__(self):
         return f"{self.marca} {self.modelo} {self.anio_fabricacion} ({self.dominio})"
-

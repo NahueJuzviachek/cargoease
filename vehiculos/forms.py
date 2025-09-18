@@ -10,13 +10,36 @@ PATENTE_VIEJA = re.compile(r"^[A-Z]{3}\d{3}$")          # ABC123
 class VehiculoForm(forms.ModelForm):
     class Meta:
         model = Vehiculo
-        fields = ["marca", "modelo", "anio_fabricacion", "dominio", "dominio_remolque"]
+        fields = [
+            "marca",
+            "modelo",
+            "anio_fabricacion",
+            "dominio",
+            "dominio_remolque",
+            "ejes",  
+        ]
         widgets = {
-            "marca": forms.TextInput(attrs={"class": "form-control", "placeholder": "Marca"}),
-            "modelo": forms.TextInput(attrs={"class": "form-control", "placeholder": "Modelo"}),
-            "anio_fabricacion": forms.NumberInput(attrs={"class": "form-control", "placeholder": "Ej: 2018", "min": 1950}),
-            "dominio": forms.TextInput(attrs={"class": "form-control", "placeholder": "AA123BB o ABC123", "style": "text-transform:uppercase"}),
-            "dominio_remolque": forms.TextInput(attrs={"class": "form-control", "placeholder": "Opcional: AA123BB o ABC123", "style": "text-transform:uppercase"}),
+            "marca": forms.TextInput(attrs={"class": "form-control", "placeholder": ""}),
+            "modelo": forms.TextInput(attrs={"class": "form-control", "placeholder": ""}),
+            "anio_fabricacion": forms.NumberInput(attrs={
+                "class": "form-control", "placeholder": "Ej: 2018", "min": 1950
+            }),
+            "dominio": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "AA123BB o ABC123",
+                "style": "text-transform:uppercase"
+            }),
+            "dominio_remolque": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "AA123BB o ABC123",
+                "style": "text-transform:uppercase"
+            }),
+            "ejes": forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "Ej: 2, 3, 4...",
+                "min": 1,
+                "step": 1
+            }),
         }
         labels = {
             "marca": "Marca",
@@ -24,6 +47,7 @@ class VehiculoForm(forms.ModelForm):
             "anio_fabricacion": "Año de fabricación",
             "dominio": "Dominio",
             "dominio_remolque": "Dominio remolque (opcional)",
+            "ejes": "Cantidad de ejes",
         }
 
     def clean_anio_fabricacion(self):
@@ -51,3 +75,11 @@ class VehiculoForm(forms.ModelForm):
         domr = domr.strip().upper()
         self._validar_patente(domr, "dominio remolque")
         return domr
+
+    def clean_ejes(self):
+        ejes = self.cleaned_data.get("ejes")
+        if ejes is None:
+            raise forms.ValidationError("Indicá la cantidad de ejes.")
+        if ejes < 1:
+            raise forms.ValidationError("La cantidad de ejes debe ser al menos 1.")
+        return ejes

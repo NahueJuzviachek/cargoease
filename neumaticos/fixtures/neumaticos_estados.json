@@ -1,0 +1,30 @@
+[
+    {
+        "model": "neumaticos.estadoneumatico",
+        "pk": 1,
+        "fields": {
+            "descripcion": "Montado"
+        }
+    },
+    {
+        "model": "neumaticos.estadoneumatico",
+        "pk": 2,
+        "fields": {
+            "descripcion": "Almacén"
+        }
+    },
+    {
+        "model": "neumaticos.estadoneumatico",
+        "pk": 3,
+        "fields": {
+            "descripcion": "En reparación"
+        }
+    },
+    {
+        "model": "neumaticos.estadoneumatico",
+        "pk": 4,
+        "fields": {
+            "descripcion": "Baja"
+        }
+    }
+]

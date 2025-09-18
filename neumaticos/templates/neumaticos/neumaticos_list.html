@@ -1,0 +1,180 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+
+<div class="container my-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="mb-0">Control General de Neumáticos</h2>
+        <button class="btn btn-primary" id="btnAbrirModal" disabled data-bs-toggle="modal"
+            data-bs-target="#modalCambiar">
+            Cambiar / Reubicar
+        </button>
+    </div>
+
+    <div class="row g-4">
+        <!-- Vehículos -->
+        <div class="col-lg-9">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="small">
+                    <span class="badge bg-success">Nuevo</span>
+                    <span class="badge bg-primary">Recapado</span>
+                    <span class="badge bg-warning text-dark">Usado</span>
+                </div>
+            </div>
+
+            <div class="accordion" id="vehiculosAccordion">
+                {% for item in vehiculos_ctx %}
+                {% with v=item.vehiculo %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="head-{{ v.id }}">
+                        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#col-{{ v.id }}"
+                            aria-expanded="{{ forloop.first|yesno:'true,false' }}" aria-controls="col-{{ v.id }}">
+                            {{ v }} — {{ item.ejes }} ejes
+                        </button>
+                    </h2>
+
+                    <div id="col-{{ v.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+                        aria-labelledby="head-{{ v.id }}" data-bs-parent="#vehiculosAccordion">
+                        <div class="accordion-body">
+                            <div class="row g-4">
+                                {% for eje, neums in item.por_eje %}
+                                <div class="col-md-4">
+                                    <h6 class="text-center mb-3">Eje {{ eje }}</h6>
+                                    <div class="vstack gap-3">
+                                        {% for n in neums %}
+                                        <label class="border rounded p-2 d-flex align-items-center gap-2 neum-item">
+                                            <input class="form-check-input select-neum" type="checkbox"
+                                                value="{{ n.id }}" data-scope="vehiculo" data-vehiculo="{{ v.id }}"
+                                                data-eje="{{ eje }}" data-pos="{{ n.nroNeumatico }}" />
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between small">
+                                                    <strong>#{{ n.nroNeumatico }}</strong>
+                                                    <span>{{ n.km|default:0 }} km</span>
+                                                </div>
+
+                                                <!-- Progress (sin if inline) -->
+                                                <div class="progress mt-1" style="height: 18px;"
+                                                    data-km="{{ n.km|default:0 }}"
+                                                    data-tipo="{{ n.tipo.descripcion|default:''|lower }}"
+                                                    data-cap-nuevo="{{ caps_por_tipo.nuevo|default:'' }}"
+                                                    data-cap-recapado="{{ caps_por_tipo.recapado|default:'' }}"
+                                                    data-cap-usado="{{ caps_por_tipo.usado|default:'' }}">
+                                                    <div class="progress-bar" role="progressbar" aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                        <span class="progress-label"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                        {% empty %}
+                                        <div class="text-muted small text-center">Sin neumáticos en este eje.</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endwith %}
+                {% empty %}
+                <div class="alert alert-info">No hay vehículos cargados.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Almacén -->
+        <div class="col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="mb-3">Almacén</h5>
+                    <div class="vstack gap-2">
+                        {% for n in almacen %}
+                        <label class="border rounded p-2 d-flex align-items-center gap-2 neum-item">
+                            <input class="form-check-input select-neum" type="checkbox" value="{{ n.id }}"
+                                data-scope="almacen" />
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between small">
+                                    <strong>ID {{ n.id }}</strong>
+                                    <span>{{ n.km|default:0 }} km</span>
+                                </div>
+
+                                <!-- Progress (sin if inline) -->
+                                <div class="progress mt-1" style="height: 14px;" data-km="{{ n.km|default:0 }}"
+                                    data-tipo="{{ n.tipo.descripcion|default:''|lower }}"
+                                    data-cap-nuevo="{{ caps_por_tipo.nuevo|default:'' }}"
+                                    data-cap-recapado="{{ caps_por_tipo.recapado|default:'' }}"
+                                    data-cap-usado="{{ caps_por_tipo.usado|default:'' }}">
+                                    <div class="progress-bar" role="progressbar">
+                                        <span class="progress-label"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                        {% empty %}
+                        <div class="text-muted small">No hay neumáticos en almacén.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cambiar/Reubicar -->
+    <div class="modal fade" id="modalCambiar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form method="post" action="{% url 'neumaticos_cambiar_global' %}" class="modal-content">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar / Reubicar Neumáticos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="neumaticos_ids" id="neumaticos_ids" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Destino</label>
+                        <select class="form-select" name="destino" id="destinoSelect" required>
+                            <option value="" selected disabled>Elegí destino…</option>
+                            <option value="almacen">Enviar a Almacén</option>
+                            <optgroup label="Montar en vehículo">
+                                {% for item in vehiculos_ctx %}
+                                <option value="vehiculo:{{ item.vehiculo.id }}">{{ item.vehiculo }} ({{ item.ejes }}
+                                    ejes)</option>
+                                {% endfor %}
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div id="grupoVehiculo" class="row g-2 d-none">
+                        <div class="col-6">
+                            <label class="form-label">Eje destino</label>
+                            <input type="number" class="form-control" name="eje_destino" min="1" placeholder="Ej: 1">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Posición</label>
+                            <input type="number" class="form-control" name="posicion_destino" min="1"
+                                placeholder="Ej: 1">
+                        </div>
+                    </div>
+
+                    <div class="form-text">
+                        Si se reemplaza por uno <strong>nuevo</strong>, los km del neumático montado deben reiniciarse a
+                        0.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JS externo -->
+<script src="{% static 'neumaticos/neumaticos.js' %}"></script>
+{% endblock %}
