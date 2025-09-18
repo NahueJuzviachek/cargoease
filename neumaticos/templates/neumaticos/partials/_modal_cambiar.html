@@ -1,0 +1,54 @@
+<div class="modal fade" id="modalCambiar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" action="{% url 'neumaticos_cambiar_global' %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5 class="modal-title">Cambiar / Reubicar Neumáticos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="neumaticos_ids" id="neumaticos_ids" />
+
+                <div class="mb-3">
+                    <label class="form-label">Destino</label>
+                    <select class="form-select" name="destino" id="destinoSelect" required>
+                        <option value="" selected disabled>Elegí destino…</option>
+                        <option value="almacen">Enviar a Almacén</option>
+                        <optgroup label="Montar en vehículo">
+                            {% for item in vehiculos_ctx %}
+                            <option value="vehiculo:{{ item.vehiculo.pk }}">{{ item.vehiculo }} ({{ item.ejes }} ejes)
+                            </option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div id="grupoVehiculo" class="row g-2 d-none">
+                    <div class="col-6">
+                        <label class="form-label">Eje destino</label>
+                        <input type="number" class="form-control" name="eje_destino" min="1" placeholder="Ej: 1">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Posición</label>
+                        <input type="number" class="form-control" name="posicion_destino" min="1" placeholder="Ej: 1">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Condición</label>
+                    <select class="form-select" name="tipo_condicion">
+                        <option value="">Dejar igual</option>
+                        <option value="nuevo">Nuevo</option>
+                        <option value="recapado">Recapado</option>
+                        <option value="usado">Usado</option>
+                    </select>
+                    <div class="form-text">Si elegís "Nuevo" o "Recapado", se reinician los km.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Confirmar</button>
+            </div>
+        </form>
+    </div>
+</div>

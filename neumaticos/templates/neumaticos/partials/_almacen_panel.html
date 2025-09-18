@@ -1,0 +1,55 @@
+<div class="card shadow-sm h-100">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Almacén</h5>
+            <div class="d-flex gap-2">
+                <!-- Nuevo neumático con condición -->
+                <form method="post" action="{% url 'neumaticos_nuevo_almacen' %}"
+                    class="d-flex align-items-center gap-2">
+                    {% csrf_token %}
+                    <select name="tipo_condicion" class="form-select form-select-sm" required>
+                        <option value="nuevo" selected>Nuevo</option>
+                        <option value="recapado">Recapado</option>
+                        <option value="usado">Usado</option>
+                    </select>
+                    <button type="submit" class="btn btn-success btn-sm">Nuevo neumático</button>
+                </form>
+
+                <!-- Eliminar seleccionados (confirm en JS) -->
+                <form id="formEliminarAlmacen" method="post" action="{% url 'neumaticos_eliminar_almacen' %}"
+                    data-confirm="¿Desea eliminar los neumáticos seleccionados? Esta acción es irreversible.">
+                    {% csrf_token %}
+                    <input type="hidden" name="neumaticos_ids_eliminar" id="neumaticos_ids_eliminar">
+                    <button type="submit" class="btn btn-outline-danger btn-sm" id="btnEliminarAlmacen" disabled>
+                        Eliminar seleccionados
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="vstack gap-2">
+            {% for n in almacen %}
+            <label class="border rounded p-2 d-flex align-items-center gap-2 neum-item">
+                <input class="form-check-input select-neum" type="checkbox" value="{{ n.pk }}" data-scope="almacen" />
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between small align-items-center">
+                        <strong>{{ n.pk }}</strong>
+                        <span>{{ n.km|default:0 }} km — {{ n.tipo.descripcion|default:"" }}</span>
+                    </div>
+                    <div class="progress mt-1" style="height: 14px;" data-km="{{ n.km|default:0 }}"
+                        data-tipo="{{ n.tipo.descripcion|default:''|lower }}"
+                        data-cap-nuevo="{{ caps_por_tipo.nuevo|default:'' }}"
+                        data-cap-recapado="{{ caps_por_tipo.recapado|default:'' }}"
+                        data-cap-usado="{{ caps_por_tipo.usado|default:'' }}">
+                        <div class="progress-bar" role="progressbar">
+                            <span class="progress-label"></span>
+                        </div>
+                    </div>
+                </div>
+            </label>
+            {% empty %}
+            <div class="text-muted small">No hay neumáticos en almacén.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

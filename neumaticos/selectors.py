@@ -8,22 +8,18 @@ def listar_vehiculos_con_neumaticos():
             .prefetch_related("neumaticos__tipo", "neumaticos__estado"))
 
 def listar_almacen():
-    # En almacén = sin vehículo asignado
+    # Solo neumáticos realmente en almacén: sin vehículo y no montados
     return (Neumatico.objects
             .select_related("tipo")
-            .filter(vehiculo__isnull=True)
+            .filter(vehiculo__isnull=True, montado=False)
             .order_by("idNeumatico"))
 
 def mapear_neumaticos_por_eje(vehiculos, nro_to_pos):
-    """
-    Devuelve: { veh_id: { 'ejes': v.ejes, 'por_eje': [(eje, [neums]), ...] } }
-    Sólo incluye neumáticos montados del vehículo.
-    """
     mapa = {}
     for v in vehiculos:
         montados = (v.neumaticos
                     .select_related("tipo")
-                    .filter(montado=True)
+                    .filter(montado=True)          # ← asegura no mostrar los que ya se mandaron a almacén
                     .order_by("nroNeumatico"))
 
         ejes = {}

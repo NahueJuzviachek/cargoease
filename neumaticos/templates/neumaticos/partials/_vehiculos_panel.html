@@ -1,0 +1,63 @@
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <div class="small">
+        <span class="badge bg-success">Nuevo</span>
+        <span class="badge bg-primary">Recapado</span>
+        <span class="badge bg-warning text-dark">Usado</span>
+    </div>
+</div>
+
+<div class="accordion" id="vehiculosAccordion">
+    {% for item in vehiculos_ctx %}
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="head-{{ item.vehiculo.pk }}">
+            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button"
+                data-bs-toggle="collapse" data-bs-target="#col-{{ item.vehiculo.pk }}"
+                aria-expanded="{{ forloop.first|yesno:'true,false' }}" aria-controls="col-{{ item.vehiculo.pk }}">
+                {{ item.vehiculo }} — {{ item.ejes }} ejes
+            </button>
+        </h2>
+
+        <div id="col-{{ item.vehiculo.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+            aria-labelledby="head-{{ item.vehiculo.pk }}" data-bs-parent="#vehiculosAccordion">
+            <div class="accordion-body">
+                <div class="row g-4">
+                    {% for eje, neums in item.por_eje %}
+                    <div class="col-md-4">
+                        <h6 class="text-center mb-3">Eje {{ eje }}</h6>
+                        <div class="vstack gap-3">
+                            {% for n in neums %}
+                            <label class="border rounded p-2 d-flex align-items-center gap-2 neum-item">
+                                <input class="form-check-input select-neum" type="checkbox" value="{{ n.pk }}"
+                                    data-scope="vehiculo" data-vehiculo="{{ item.vehiculo.pk }}" data-eje="{{ eje }}"
+                                    data-pos="{{ n.nroNeumatico }}" />
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between small align-items-center">
+                                        <strong>{{ n.pk }}</strong>
+                                        <span>{{ n.km|default:0 }} km — {{ n.tipo.descripcion|default:"" }}</span>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 18px;" data-km="{{ n.km|default:0 }}"
+                                        data-tipo="{{ n.tipo.descripcion|default:''|lower }}"
+                                        data-cap-nuevo="{{ caps_por_tipo.nuevo|default:'' }}"
+                                        data-cap-recapado="{{ caps_por_tipo.recapado|default:'' }}"
+                                        data-cap-usado="{{ caps_por_tipo.usado|default:'' }}">
+                                        <div class="progress-bar" role="progressbar" aria-valuemin="0"
+                                            aria-valuemax="100">
+                                            <span class="progress-label"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                            {% empty %}
+                            <div class="text-muted small text-center">Sin neumáticos en este eje.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-info">No hay vehículos cargados.</div>
+    {% endfor %}
+</div>
