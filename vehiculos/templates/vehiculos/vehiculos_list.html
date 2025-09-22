@@ -15,10 +15,14 @@
     <div class="input-group" style="max-width: 600px; width: 100%;">
       <input type="text" name="q" value="{{ q }}" class="form-control"
         placeholder="Buscar por marca, modelo, año o dominio...">
-      <button class="btn btn-primary" type="submit">Buscar</button>
+      <button class="btn btn-primary" type="submit" title="Buscar">
+        <i class="bi bi-search"></i>
+      </button>
     </div>
     <div class="ms-3">
-      <a class="btn btn-success" href="{% url 'vehiculo_crear' %}">Agregar</a>
+      <a class="btn btn-success" href="{% url 'vehiculo_crear' %}" title="Agregar vehículo">
+        <i class="bi bi-truck"></i> <i class="bi bi-plus-lg"></i>
+      </a>
     </div>
   </form>
 
@@ -43,9 +47,18 @@
           <td class="centered">{{ v.dominio }}</td>
           <td class="centered">{{ v.dominio_remolque|default:"—" }}</td>
           <td class="centered">
-            <a class="btn btn-sm btn-primary" href="{% url 'vehiculo_editar' v.pk %}">Modificar</a>
-            <a class="btn btn-sm btn-danger" href="{% url 'vehiculo_eliminar' v.pk %}">Eliminar</a>
-            <a class="btn btn-sm btn-sm" href="{% url 'vehiculo_viajes_list' v.pk %}">Viajes</a>
+            <!-- Editar -->
+            <a class="btn btn-sm btn-outline-warning" href="{% url 'vehiculo_editar' v.pk %}" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <!-- Eliminar -->
+            <a class="btn btn-sm btn-outline-danger" href="{% url 'vehiculo_eliminar' v.pk %}" title="Eliminar">
+              <i class="bi bi-trash"></i>
+            </a>
+            <!-- Viajes -->
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'vehiculo_viajes_list' v.pk %}" title="Ver viajes">
+              <i class="bi bi-geo-alt"></i>
+            </a>
           </td>
         </tr>
         {% empty %}

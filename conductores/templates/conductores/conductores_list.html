@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/index.css' %}"/>
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
 
 <div class="container my-4">
   <div class="row">
@@ -15,10 +15,14 @@
   <form method="get" class="d-flex justify-content-center my-3">
     <div class="input-group" style="max-width: 500px; width: 100%;">
       <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar por nombre...">
-      <button class="btn btn-primary" type="submit">Buscar</button>
+      <button class="btn btn-primary" type="submit" title="Buscar">
+        <i class="bi bi-search"></i>
+      </button>
     </div>
     <div class="ms-3">
-      <a class="btn btn-success" href="{% url 'conductor_crear' %}">Agregar</a>
+      <a class="btn btn-success" href="{% url 'conductor_crear' %}" title="Agregar conductor">
+        <i class="bi bi-person-plus"></i>
+      </a>
     </div>
   </form>
 
@@ -42,17 +46,24 @@
           <td>{{ conductor.vehiculo.marca }} {{ conductor.vehiculo.modelo }}</td>
           <td>{{ conductor.dominio }}</td>
           <td>
-            <a class="btn btn-sm btn-warning" href="{% url 'conductor_editar' conductor.pk %}">Editar</a>
-            <a class="btn btn-sm btn-danger" href="{% url 'conductor_eliminar' conductor.pk %}">Eliminar</a>
+            <!-- Editar -->
+            <a class="btn btn-sm btn-outline-warning" href="{% url 'conductor_editar' conductor.pk %}" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <!-- Eliminar -->
+            <a class="btn btn-sm btn-outline-danger" href="{% url 'conductor_eliminar' conductor.pk %}"
+              title="Eliminar">
+              <i class="bi bi-trash"></i>
+            </a>
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="5">No hay conductores cargados.</td></tr>
+        <tr>
+          <td colspan="5">No hay conductores cargados.</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
 {% endblock %}
-
-

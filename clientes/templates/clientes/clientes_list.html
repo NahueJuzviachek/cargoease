@@ -15,10 +15,14 @@
   <form method="get" class="d-flex justify-content-center my-3">
     <div class="input-group" style="max-width: 500px; width: 100%;">
       <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por nombre...">
-      <button class="btn btn-primary" type="submit">Buscar</button>
+      <button class="btn btn-primary" type="submit" title="Buscar">
+        <i class="bi bi-search"></i>
+      </button>
     </div>
     <div class="ms-3">
-      <a class="btn btn-success" href="{% url 'cliente_crear' %}">Agregar</a>
+      <a class="btn btn-success" href="{% url 'cliente_crear' %}" title="Agregar cliente">
+        <i class="bi bi-person-plus"></i>
+      </a>
     </div>
   </form>
 
@@ -45,8 +49,14 @@
               <td class="centered">{{ c.provincia.nombre }}</td>
               <td class="centered">{{ c.localidad.nombre }}</td>
               <td class="centered">
-                <a class="btn btn-sm btn-primary" href="{% url 'cliente_editar' c.pk %}">Modificar</a>
-                <a class="btn btn-sm btn-danger" href="{% url 'cliente_eliminar' c.pk %}">Eliminar</a>
+                <!-- Editar -->
+                <a class="btn btn-sm btn-outline-warning" href="{% url 'cliente_editar' c.pk %}" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <!-- Eliminar -->
+                <a class="btn btn-sm btn-outline-danger" href="{% url 'cliente_eliminar' c.pk %}" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </a>
               </td>
             </tr>
             {% empty %}
@@ -71,8 +81,9 @@
           <li class="page-item disabled"><span class="page-link">Anterior</span></li>
           {% endif %}
 
-          <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages
-              }}</span></li>
+          <li class="page-item active">
+            <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+          </li>
 
           {% if page_obj.has_next %}
           <li class="page-item"><a class="page-link"
