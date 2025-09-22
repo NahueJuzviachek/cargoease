@@ -1,0 +1,89 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+
+<div class="container my-4" style="max-width: 900px;">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Gastos extra</h2>
+        <a href="{% url 'vehiculo_viajes_list' viaje.vehiculo.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <!-- Formulario compacto -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <i class="bi bi-receipt"></i> Registrar gasto extra
+        </div>
+        <div class="card-body">
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-3">
+                    <label class="form-label">Fecha</label>
+                    {{ form.fecha }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Monto</label>
+                    {{ form.monto }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Descripción</label>
+                    {{ form.descripcion }}
+                </div>
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-plus-lg"></i> Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de gastos -->
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-list-ul"></i> Gastos registrados
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th class="text-end">Monto</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in gastos %}
+                    <tr>
+                        <td>{{ g.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ g.descripcion|default:"—" }}</td>
+                        <td class="text-end">
+                            {% firstof viaje.divisa.simbolo viaje.divisa.codigo %} {{ g.monto|floatformat:2 }}
+                        </td>
+                        <td class="text-center">
+                            <!-- Eliminar -->
+                            <form action="{% url 'gasto_extra_eliminar' viaje.id g.id %}" method="post"
+                                class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No hay gastos registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

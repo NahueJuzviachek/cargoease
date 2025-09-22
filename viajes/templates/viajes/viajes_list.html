@@ -84,14 +84,25 @@
 
                             <!-- Acciones -->
                             <td class="centered">
-                                <a class="btn btn-sm btn-outline-primary"
-                                    href="{% url 'vehiculo_viaje_editar' vehiculo.pk v.pk %}" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a class="btn btn-sm btn-outline-danger"
-                                    href="{% url 'vehiculo_viaje_eliminar' vehiculo.pk v.pk %}" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </a>
+                                <div class="btn-group" role="group">
+                                    <!-- Editar -->
+                                    <a class="btn btn-sm btn-outline-primary"
+                                        href="{% url 'vehiculo_viaje_editar' vehiculo.pk v.pk %}" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+
+                                    <!-- Eliminar -->
+                                    <a class="btn btn-sm btn-outline-danger"
+                                        href="{% url 'vehiculo_viaje_eliminar' vehiculo.pk v.pk %}" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+
+                                    <!-- Gastos extra -->
+                                    <a class="btn btn-sm btn-outline-warning" href="{% url 'viaje_gastos_list' v.pk %}"
+                                        title="Gastos extra">
+                                        <i class="bi bi-receipt"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}

@@ -1,6 +1,10 @@
 from decimal import Decimal
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Sum
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
 
 class Divisa(models.Model):
     nombre = models.CharField(max_length=50)
@@ -23,11 +27,10 @@ class Viaje(models.Model):
         related_name="viajes", db_index=True
     )
 
-    # 🔹 NUEVO: Cliente del viaje
     cliente = models.ForeignKey(
         "clientes.Cliente", on_delete=models.PROTECT,
         related_name="viajes", db_index=True,
-        null=True, blank=True  # Si ya tenés datos, esto evita romper migración. Luego podés volverlo requerido.
+        null=True, blank=True
     )
 
     fecha = models.DateField(db_index=True, help_text="Fecha del viaje.")
@@ -71,7 +74,8 @@ class Viaje(models.Model):
 
     gasto = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True,
-        validators=[MinValueValidator(Decimal("0"))]
+        validators=[MinValueValidator(Decimal("0"))],
+        help_text="Suma automática de todos los gastos extra del viaje."
     )
 
     ganancia_total = models.DecimalField(
@@ -89,7 +93,7 @@ class Viaje(models.Model):
         verbose_name_plural = "Viajes"
         indexes = [
             models.Index(fields=["vehiculo"]),
-            models.Index(fields=["cliente"]),   # 🔹 NUEVO índice
+            models.Index(fields=["cliente"]),
             models.Index(fields=["salida"]),
             models.Index(fields=["destino"]),
             models.Index(fields=["fecha"]),
@@ -97,7 +101,6 @@ class Viaje(models.Model):
         ordering = ["-fecha", "-creado_en"]
 
     def __str__(self):
-        # Incluyo cliente si existe (por compatibilidad con null=True inicial)
         cli = f" - {self.cliente}" if self.cliente_id else ""
         return f"Viaje #{self.pk} - {self.vehiculo}{cli} ({self.salida} → {self.destino}) {self.fecha}"
 
@@ -118,3 +121,39 @@ class Viaje(models.Model):
         if self.valor_flete is not None and self.porcentaje_conductor is not None and self.viaticos is not None:
             self.ganancia_total = self.calcular_ganancia()
         super().save(*args, **kwargs)
+
+
+class GastoExtra(models.Model):
+    viaje = models.ForeignKey(
+        Viaje,
+        on_delete=models.CASCADE,
+        related_name="gastos_extra",
+        db_index=True,
+    )
+    fecha = models.DateField()
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    descripcion = models.CharField(max_length=255, blank=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "tablaGastosExtra"
+        ordering = ["-fecha", "-id"]
+
+    def __str__(self):
+        return f"GastoExtra(viaje={self.viaje_id}, {self.fecha}, {self.monto})"
+
+
+# --- Señales para mantener sincronizado gasto y ganancia_total ---
+def _sumar_gastos_extra(viaje: Viaje) -> Decimal:
+    total = viaje.gastos_extra.aggregate(s=Sum("monto"))["s"] or Decimal("0")
+    return total
+
+
+@receiver(post_save, sender=GastoExtra)
+@receiver(post_delete, sender=GastoExtra)
+def actualizar_gastos_y_ganancia(sender, instance: GastoExtra, **kwargs):
+    viaje = instance.viaje
+    total_extras = _sumar_gastos_extra(viaje)
+    viaje.gasto = total_extras
+    viaje.ganancia_total = viaje.calcular_ganancia()
+    viaje.save(update_fields=["gasto", "ganancia_total", "actualizado_en"])

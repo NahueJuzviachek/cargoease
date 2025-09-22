@@ -3,10 +3,12 @@ from django.conf import settings
 from django.urls import reverse
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib import messages
 
-from .models import Viaje
+from .models import Viaje, GastoExtra
 from .forms import ViajeForm
+from .forms import GastoExtraForm  # <-- formulario del gasto extra
 from vehiculos.models import Vehiculo
 
 
@@ -17,7 +19,7 @@ class ORSContextMixin:
     """
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["ORS_API_KEY"] = getattr(settings, "ORS_API_KEY", "")  # <- clave para el front
+        ctx["ORS_API_KEY"] = getattr(settings, "ORS_API_KEY", "")
         return ctx
 
 
@@ -36,8 +38,8 @@ class ViajeListView(ORSContextMixin, ListView):
         qs = (
             super()
             .get_queryset()
-            .select_related("vehiculo", "salida", "destino", "divisa")
-            .filter(vehiculo=self.vehiculo)  # Solo este vehículo
+            .select_related("vehiculo", "salida", "destino", "divisa", "cliente")
+            .filter(vehiculo=self.vehiculo)
             .order_by("-fecha", "-creado_en")
         )
         q = self.request.GET.get("q", "").strip()
@@ -87,8 +89,8 @@ class VehiculoViajeUpdateView(ORSContextMixin, UpdateView):
         self.vehiculo = get_object_or_404(Vehiculo, pk=kwargs["vehiculo_pk"])
         return super().dispatch(request, *args, **kwargs)
 
-    # Solo permitimos editar viajes de ese vehículo
     def get_queryset(self):
+        # Solo permitimos editar viajes de ese vehículo
         return (
             Viaje.objects
             .filter(vehiculo_id=self.kwargs["vehiculo_pk"])
@@ -121,9 +123,57 @@ class VehiculoViajeDeleteView(ORSContextMixin, DeleteView):
     model = Viaje
     template_name = "viajes/viajes_confirm_delete.html"
 
-    # Solo permite borrar viajes de ese vehículo
     def get_queryset(self):
+        # Solo permite borrar viajes de ese vehículo
         return Viaje.objects.filter(vehiculo_id=self.kwargs["vehiculo_pk"])
 
     def get_success_url(self):
         return reverse("vehiculo_viajes_list", kwargs={"vehiculo_pk": self.kwargs["vehiculo_pk"]})
+
+
+# -----------------------------
+# Gastos Extra (form arriba + tabla debajo)
+# -----------------------------
+def gastos_list(request, viaje_id):
+    """
+    Vista que muestra el formulario compacto para crear un GastoExtra
+    y debajo la tabla de todos los gastos de ese viaje.
+    """
+    viaje = get_object_or_404(Viaje, pk=viaje_id)
+    gastos = viaje.gastos_extra.all()  # ya viene ordenado por Meta en el modelo
+
+    if request.method == "POST":
+        form = GastoExtraForm(request.POST)
+        if form.is_valid():
+            gasto = form.save(commit=False)
+            gasto.viaje = viaje
+            gasto.save()
+            messages.success(request, "Gasto extra registrado correctamente.")
+            return redirect(reverse("viaje_gastos_list", args=[viaje.id]))
+        else:
+            messages.error(request, "Revisá los datos del formulario.")
+    else:
+        form = GastoExtraForm()
+
+    ctx = {
+        "viaje": viaje,
+        "gastos": gastos,
+        "form": form,
+    }
+    return render(request, "viajes/gastos_list.html", ctx)
+
+
+def gasto_extra_eliminar(request, viaje_id, gasto_id):
+    """
+    Confirma y elimina un gasto extra asociado al viaje.
+    """
+    viaje = get_object_or_404(Viaje, pk=viaje_id)
+    gasto = get_object_or_404(GastoExtra, pk=gasto_id, viaje=viaje)
+
+    if request.method == "POST":
+        gasto.delete()
+        messages.success(request, "Gasto extra eliminado.")
+        return redirect(reverse("viaje_gastos_list", args=[viaje.id]))
+
+    # Plantilla de confirmación mínima (o podés usar un modal/confirm JS)
+    return render(request, "viajes/gasto_extra_confirm_delete.html", {"viaje": viaje, "gasto": gasto})
