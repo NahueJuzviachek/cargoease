@@ -23,7 +23,7 @@ class Divisa(models.Model):
 
 class Viaje(models.Model):
     vehiculo = models.ForeignKey(
-        "vehiculos.Vehiculo", on_delete=models.PROTECT,
+        "vehiculos.Vehiculo", on_delete=models.CASCADE,
         related_name="viajes", db_index=True
     )
 

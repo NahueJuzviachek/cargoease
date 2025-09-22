@@ -1,0 +1,147 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+
+<div class="container my-4" style="max-width: 1100px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">
+            <i class="bi bi-droplet"></i> Aceite — {{ vehiculo }}
+        </h2>
+        <a href="{% url 'vehiculo_viajes_list' vehiculo.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- ====== MOTOR ====== -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="d-flex align-items-center">
+                        <i class="bi bi-speedometer2 me-2"></i>
+                        <strong>Motor</strong>
+                        <small class="text-muted ms-2">(máx {{ max_motor }} km)</small>
+                        {% if ultimo_motor %}
+                        <small class="text-muted ms-3">
+                            Último: {{ ultimo_motor.fecha|date:"d/m/Y" }} · Filtros: {{
+                            ultimo_motor.filtros|yesno:"Sí,No" }}
+                        </small>
+                        {% else %}
+                        <small class="text-danger ms-3">Sin registros</small>
+                        {% endif %}
+                    </span>
+
+                    <!-- Botón que abre el modal (motor) -->
+                    <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="modal"
+                        data-bs-target="#modalCambioMotor" title="Registrar cambio de aceite de motor">
+                        <i class="bi bi-arrow-clockwise"></i> Cambiar aceite
+                    </button>
+                </div>
+
+                <div class="card-body">
+                    <!-- Gráfico Motor -->
+                    <canvas id="chartMotor" height="220" data-usados="{{ usados_motor|floatformat:0 }}"
+                        data-restantes="{{ restantes_motor|floatformat:0 }}" data-max="{{ max_motor }}"></canvas>
+
+                    <div class="mt-3">
+                        <span class="badge bg-primary">Usados: {{ usados_motor|floatformat:0 }} km</span>
+                        <span class="badge bg-secondary ms-2">Restantes: {{ restantes_motor|floatformat:0 }} km</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== CAJA ====== -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="d-flex align-items-center">
+                        <i class="bi bi-gear-wide-connected me-2"></i>
+                        <strong>Caja</strong>
+                        <small class="text-muted ms-2">(máx {{ max_caja }} km)</small>
+                        {% if ultimo_caja %}
+                        <small class="text-muted ms-3">Último: {{ ultimo_caja.fecha|date:"d/m/Y" }}</small>
+                        {% else %}
+                        <small class="text-danger ms-3">Sin registros</small>
+                        {% endif %}
+                    </span>
+
+                    <!-- Botón que abre modal (caja) -->
+                    <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="modal"
+                        data-bs-target="#modalCambioCaja" title="Registrar cambio de aceite de caja">
+                        <i class="bi bi-arrow-clockwise"></i> Cambiar aceite
+                    </button>
+                </div>
+
+                <div class="card-body">
+                    <!-- Gráfico Caja -->
+                    <canvas id="chartCaja" height="220" data-usados="{{ usados_caja|floatformat:0 }}"
+                        data-restantes="{{ restantes_caja|floatformat:0 }}" data-max="{{ max_caja }}"></canvas>
+
+                    <div class="mt-3">
+                        <span class="badge bg-primary">Usados: {{ usados_caja|floatformat:0 }} km</span>
+                        <span class="badge bg-secondary ms-2">Restantes: {{ restantes_caja|floatformat:0 }} km</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Cambio de aceite (Motor) con filtros -->
+<div class="modal fade" id="modalCambioMotor" tabindex="-1" aria-labelledby="modalCambioMotorLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" action="{% url 'vehiculo_aceite_motor_cambiar' vehiculo.pk %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCambioMotorLabel">Cambio de aceite — Motor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="id_filtros" name="filtros">
+                    <label class="form-check-label" for="id_filtros">
+                        También se cambiaron los filtros
+                    </label>
+                </div>
+                <p class="text-muted mt-2 mb-0">Se registrará con la fecha de hoy.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Confirmar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Cambio de aceite (Caja) confirmación -->
+<div class="modal fade" id="modalCambioCaja" tabindex="-1" aria-labelledby="modalCambioCajaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" action="{% url 'vehiculo_aceite_caja_cambiar' vehiculo.pk %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCambioCajaLabel">Confirmar cambio de aceite — Caja</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">¿Querés registrar el cambio de aceite de <strong>caja</strong> con la fecha de hoy?</p>
+                <p class="text-muted mt-2 mb-0">Esto reiniciará el contador de km para la caja.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Confirmar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Chart.js + script separado -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'aceite/aceite.js' %}"></script>
+{% endblock %}

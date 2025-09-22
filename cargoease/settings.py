@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'vehiculos',
     'conductores',
     'viajes',
+    'aceite',
 ]
 
 MIDDLEWARE = [

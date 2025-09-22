@@ -5,11 +5,15 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
+from django.db import transaction  # ⬅️ para on_commit
 
 from .models import Viaje, GastoExtra
 from .forms import ViajeForm
 from .forms import GastoExtraForm  # <-- formulario del gasto extra
 from vehiculos.models import Vehiculo
+
+# ⬅️ servicio que actualiza los km persistidos de aceite (motor y caja)
+from aceite.services import recalc_km_aceite_para_vehiculo
 
 
 class ORSContextMixin:
@@ -69,7 +73,10 @@ class VehiculoViajeCreateView(ORSContextMixin, CreateView):
     def form_valid(self, form):
         # Asociamos el viaje al vehículo del URL
         form.instance.vehiculo = self.vehiculo
-        return super().form_valid(form)
+        resp = super().form_valid(form)
+        # ⬇️ Recalcular km de aceite al confirmar la transacción
+        transaction.on_commit(lambda: recalc_km_aceite_para_vehiculo(self.vehiculo))
+        return resp
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -108,7 +115,10 @@ class VehiculoViajeUpdateView(ORSContextMixin, UpdateView):
     def form_valid(self, form):
         # Aseguramos la relación aunque el campo esté disabled
         form.instance.vehiculo = self.vehiculo
-        return super().form_valid(form)
+        resp = super().form_valid(form)
+        # ⬇️ Recalcular km de aceite al confirmar la transacción
+        transaction.on_commit(lambda: recalc_km_aceite_para_vehiculo(self.vehiculo))
+        return resp
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -126,6 +136,15 @@ class VehiculoViajeDeleteView(ORSContextMixin, DeleteView):
     def get_queryset(self):
         # Solo permite borrar viajes de ese vehículo
         return Viaje.objects.filter(vehiculo_id=self.kwargs["vehiculo_pk"])
+
+    def delete(self, request, *args, **kwargs):
+        # Guardamos vehiculo antes de borrar para recalcular luego
+        self.object = self.get_object()
+        vehiculo = self.object.vehiculo
+        resp = super().delete(request, *args, **kwargs)
+        # ⬇️ Recalcular km de aceite al confirmar la transacción de borrado
+        transaction.on_commit(lambda: recalc_km_aceite_para_vehiculo(vehiculo))
+        return resp
 
     def get_success_url(self):
         return reverse("vehiculo_viajes_list", kwargs={"vehiculo_pk": self.kwargs["vehiculo_pk"]})
