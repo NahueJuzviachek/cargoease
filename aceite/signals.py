@@ -1,39 +1,49 @@
+# aceite/signals.py
 from decimal import Decimal
 from django.db.models import Sum
-from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
 
-def _suma_km_viajes(vehiculo):
-    from viajes.models import Viaje
-    total = Viaje.objects.filter(vehiculo=vehiculo).aggregate(s=Sum("distancia"))["s"]
-    return Decimal(total or 0)
+from .models import Aceite
 
-def _recalcular_km_aceites(vehiculo):
+
+def _total_km_viajes(vehiculo_id: int) -> Decimal:
     """
-    Recalcula km_acumulados para todos los aceites EN_USO del vehículo.
+    Suma de km (distancia) de todos los Viaje del vehículo.
+    Import local para evitar import circular.
     """
-    from .models import Aceite, EstadoAceite
-    suma_actual = _suma_km_viajes(vehiculo)
-    aceites = Aceite.objects.filter(vehiculo=vehiculo, estado=EstadoAceite.EN_USO)
-    for a in aceites:
-        a.km_acumulados = (suma_actual - (a.viajes_km_acumulados_al_instalar or Decimal("0")))
-        if a.km_acumulados < 0:
-            a.km_acumulados = Decimal("0")
+    if not vehiculo_id:
+        return Decimal("0")
+    try:
+        from viajes.models import Viaje
+    except Exception:
+        return Decimal("0")
+    agg = Viaje.objects.filter(vehiculo_id=vehiculo_id).aggregate(s=Sum("distancia"))
+    return Decimal(agg["s"] or 0)
+
+
+def _recalcular_km_aceites(vehiculo_id: int) -> None:
+    """
+    Recalcula km_acumulados = total_km_viajes - snapshot_instalación
+    para todos los Aceite del vehículo. Tolera que no existan aceites.
+    """
+    if not vehiculo_id:
+        return
+    total = _total_km_viajes(vehiculo_id)
+    for a in Aceite.objects.filter(vehiculo_id=vehiculo_id):
+        base = a.viajes_km_acumulados_al_instalar or Decimal("0")
+        nuevo = total - base
+        if nuevo < 0:
+            nuevo = Decimal("0")
+        a.km_acumulados = nuevo
         a.save(update_fields=["km_acumulados"])
 
-@receiver(post_save, dispatch_uid="aceite_recalc_on_viaje_save")
-def aceite_recalc_on_viaje_save(sender, instance, created, **kwargs):
-    """
-    Se conecta dinámicamente a Viaje en apps.py (para evitar import circular).
-    """
-    model_name = sender.__name__.lower()
-    if model_name != "viaje":
-        return
-    _recalcular_km_aceites(instance.vehiculo)
 
-@receiver(post_delete, dispatch_uid="aceite_recalc_on_viaje_delete")
+# Estas funciones se conectan en aceite/apps.py usando sender=Viaje.
+# NO usamos decoradores @receiver aquí para evitar doble registro global.
+def aceite_recalc_on_viaje_save(sender, instance, created, **kwargs):
+    vehiculo_id = getattr(instance, "vehiculo_id", None)
+    _recalcular_km_aceites(vehiculo_id)
+
+
 def aceite_recalc_on_viaje_delete(sender, instance, **kwargs):
-    model_name = sender.__name__.lower()
-    if model_name != "viaje":
-        return
-    _recalcular_km_aceites(instance.vehiculo)
+    vehiculo_id = getattr(instance, "vehiculo_id", None)
+    _recalcular_km_aceites(vehiculo_id)

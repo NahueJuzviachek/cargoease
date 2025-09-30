@@ -8,7 +8,7 @@ from viajes.views import (
     VehiculoViajeUpdateView, VehiculoViajeDeleteView
 )
 
-from aceite.views import aceite_dashboard, cambiar_aceite_motor, cambiar_aceite_caja
+from aceite.views import aceite_dashboard, cambiar_aceite_motor, cambiar_aceite_caja, confirmar_cambio_motor, confirmar_cambio_caja
 
 urlpatterns = [
     # Vehículos
@@ -26,4 +26,6 @@ urlpatterns = [
     path("<int:vehiculo_pk>/aceite/", aceite_dashboard, name="vehiculo_aceite"),
     path("<int:vehiculo_pk>/aceite/motor/cambiar/", cambiar_aceite_motor, name="vehiculo_aceite_motor_cambiar"),
     path("<int:vehiculo_pk>/aceite/caja/cambiar/", cambiar_aceite_caja, name="vehiculo_aceite_caja_cambiar"),
+    path("<int:vehiculo_pk>/aceite/motor/confirmar/", confirmar_cambio_motor, name="vehiculo_aceite_motor_confirmar"),
+    path("<int:vehiculo_pk>/aceite/caja/confirmar/", confirmar_cambio_caja, name="vehiculo_aceite_caja_confirmar"),
 ]
