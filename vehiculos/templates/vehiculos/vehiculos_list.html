@@ -56,11 +56,13 @@
               <i class="bi bi-trash"></i>
             </a>
             <!-- Viajes -->
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'vehiculo_viajes_list' v.pk %}" title="Ver viajes">
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'vehiculo_viajes_list' vehiculo_pk=v.pk %}"
+              title="Ver viajes">
               <i class="bi bi-geo-alt"></i>
             </a>
             <!-- Aceite -->
-            <a class="btn btn-sm btn-outline-info" href="{% url 'vehiculo_aceite' v.pk %}" title="Gestión de aceite">
+            <a class="btn btn-sm btn-outline-info" href="{% url 'vehiculo_aceite' vehiculo_pk=v.pk %}"
+              title="Gestión de aceite">
               <i class="bi bi-droplet"></i>
             </a>
           </td>

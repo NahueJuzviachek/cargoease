@@ -6,5 +6,12 @@ class AceiteConfig(AppConfig):
     name = "aceite"
 
     def ready(self):
-        # registra señales
-        from . import signals  # noqa: F401
+        from django.db.models.signals import post_save, post_delete
+        from . import signals  # registra receptores
+        try:
+            from viajes.models import Viaje
+            post_save.connect(signals.aceite_recalc_on_viaje_save, sender=Viaje, dispatch_uid="aceite_recalc_on_viaje_save")
+            post_delete.connect(signals.aceite_recalc_on_viaje_delete, sender=Viaje, dispatch_uid="aceite_recalc_on_viaje_delete")
+        except Exception:
+            # Evita romper si 'viajes' todavía no está listo en migraciones iniciales
+            pass

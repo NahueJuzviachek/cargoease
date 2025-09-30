@@ -1,14 +1,17 @@
+# aceite/admin.py
 from django.contrib import admin
-from .models import AceiteMotor, AceiteCaja
+from .models import Aceite, AceiteCambio
 
-@admin.register(AceiteMotor)
-class AceiteMotorAdmin(admin.ModelAdmin):
-    list_display = ("vehiculo", "fecha", "km", "filtros")
-    list_filter = ("fecha", "filtros")
-    search_fields = ("vehiculo__dominio", "vehiculo__marca", "vehiculo__modelo")
+@admin.register(Aceite)
+class AceiteAdmin(admin.ModelAdmin):
+    list_display = ("vehiculo", "tipo", "km_acumulados", "vida_util_km", "ciclos", "fecha_instalacion")
+    list_filter = ("tipo", "fecha_instalacion")
+    search_fields = ("vehiculo__dominio", "vehiculo__modelo")
+    ordering = ("vehiculo", "tipo", "-fecha_instalacion")
 
-@admin.register(AceiteCaja)
-class AceiteCajaAdmin(admin.ModelAdmin):
-    list_display = ("vehiculo", "fecha", "km")
-    list_filter = ("fecha",)
-    search_fields = ("vehiculo__dominio", "vehiculo__marca", "vehiculo__modelo")
+@admin.register(AceiteCambio)
+class AceiteCambioAdmin(admin.ModelAdmin):
+    list_display = ("aceite", "fecha", "km_acumulados_al_cambio", "filtros_cambiados")
+    list_filter = ("fecha", "filtros_cambiados", "aceite__tipo")
+    search_fields = ("aceite__vehiculo__dominio", "aceite__vehiculo__modelo")
+    ordering = ("-fecha",)

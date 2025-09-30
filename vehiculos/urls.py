@@ -23,7 +23,6 @@ urlpatterns = [
     path("<int:vehiculo_pk>/viajes/<int:pk>/editar/", VehiculoViajeUpdateView.as_view(), name="vehiculo_viaje_editar"),
     path("<int:vehiculo_pk>/viajes/<int:pk>/eliminar/", VehiculoViajeDeleteView.as_view(), name="vehiculo_viaje_eliminar"),
 
-    # Aceite por vehículo (dashboard + único botón de cambio)
     path("<int:vehiculo_pk>/aceite/", aceite_dashboard, name="vehiculo_aceite"),
     path("<int:vehiculo_pk>/aceite/motor/cambiar/", cambiar_aceite_motor, name="vehiculo_aceite_motor_cambiar"),
     path("<int:vehiculo_pk>/aceite/caja/cambiar/", cambiar_aceite_caja, name="vehiculo_aceite_caja_cambiar"),

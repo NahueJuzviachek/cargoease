@@ -1,0 +1,33 @@
+{% extends "home/base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+<div class="container my-4" style="max-width: 700px;">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h3 class="mb-3">{% if object %}Editar Aceite{% else %}Nuevo Aceite{% endif %}</h3>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <div class="mb-3">
+                    <label class="form-label">Tipo</label>
+                    {{ form.tipo }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Vida útil (km)</label>
+                    {{ form.vida_util_km }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Notas</label>
+                    {{ form.notas }}
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'aceite_panel' vehiculo_id=view.kwargs.vehiculo_id %}"
+                        class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

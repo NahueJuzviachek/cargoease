@@ -1,10 +1,12 @@
 from django.urls import path
-from .views import aceite_dashboard, cambio_motor_hoy, cambio_caja_hoy
-
-app_name = "aceite"
+from .views import (
+    AceiteListView, AceiteCreateView, AceiteUpdateView, AceiteDeleteView, CambiarAceiteView
+)
 
 urlpatterns = [
-    path("vehiculos/<int:vehiculo_pk>/aceite/", aceite_dashboard, name="dashboard"),
-    path("vehiculos/<int:vehiculo_pk>/aceite/motor/hoy/", cambio_motor_hoy, name="cambio_motor_hoy"),
-    path("vehiculos/<int:vehiculo_pk>/aceite/caja/hoy/", cambio_caja_hoy, name="cambio_caja_hoy"),
+    path("<int:vehiculo_id>/", AceiteListView.as_view(), name="aceite_list"),
+    path("<int:vehiculo_id>/nuevo/", AceiteCreateView.as_view(), name="aceite_crear"),
+    path("editar/<int:pk>/", AceiteUpdateView.as_view(), name="aceite_editar"),
+    path("eliminar/<int:pk>/", AceiteDeleteView.as_view(), name="aceite_eliminar"),
+    path("cambiar/<int:pk>/", CambiarAceiteView.as_view(), name="aceite_cambiar"),
 ]

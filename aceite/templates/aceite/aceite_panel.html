@@ -1,0 +1,152 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
+
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">
+            Aceites – Vehículo {{ vehiculo }}
+        </h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'vehiculos_list' %}" class="btn btn-outline-secondary btn-sm">Volver a Vehículos</a>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="mb-2">Aceite de Motor – Km acumulados</h6>
+                    <canvas id="chartMotor" height="120"></canvas>
+                    <small class="text-muted d-block mt-2">
+                        {{ km_motor|default:0 }} Km / Máximo {{ max_motor }} Km
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="mb-2">Aceite de Caja – Km acumulados</h6>
+                    <canvas id="chartCaja" height="120"></canvas>
+                    <small class="text-muted d-block mt-2">
+                        {{ km_caja|default:0 }} Km / Máximo {{ max_caja }} Km
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas MOTOR y CAJA -->
+    <div class="row g-3">
+        <!-- MOTOR -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="mb-2">Aceite de Motor</h5>
+
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">Instalado</small>
+                            <small>{{ motor.fecha_instalacion|date:"d/m/Y" }}</small>
+                        </div>
+                        <div class="progress mt-1" style="height: 10px;">
+                            <div class="progress-bar" role="progressbar"
+                                style="width: {{ pct_motor_cap|floatformat:0 }}%"
+                                aria-valuenow="{{ pct_motor_cap|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <small>
+                            {{ km_motor }} km ({{ pct_motor_cap|floatformat:0 }}% de {{ max_motor }} Km)
+                        </small>
+                    </div>
+
+                    <div class="mb-2">
+                        {% with ultimo=motor.historial.first %}
+                        {% if ultimo %}
+                        <small class="text-muted">
+                            Último cambio: {{ ultimo.fecha|date:"d/m/Y" }} – Filtros:
+                            {{ ultimo.filtros_cambiados|yesno:"sí,no" }}
+                        </small>
+                        {% else %}
+                        <small class="text-muted">Sin cambios registrados</small>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+
+                    <div class="mt-auto d-flex justify-content-end gap-2">
+                        <!-- Cambiar con checkbox Filtros -->
+                        <form method="post" action="{% url 'vehiculo_aceite_motor_cambiar' vehiculo_pk=vehiculo.id %}">
+                            {% csrf_token %}
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="filtrosMotor"
+                                        name="filtros_cambiados">
+                                    <label class="form-check-label" for="filtrosMotor">Filtros</label>
+                                </div>
+                                <button type="submit" class="btn btn-warning btn-sm">Cambiar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CAJA -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="mb-2">Aceite de Caja</h5>
+
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">Instalado</small>
+                            <small>{{ caja.fecha_instalacion|date:"d/m/Y" }}</small>
+                        </div>
+                        <div class="progress mt-1" style="height: 10px;">
+                            <div class="progress-bar" role="progressbar"
+                                style="width: {{ pct_caja_cap|floatformat:0 }}%"
+                                aria-valuenow="{{ pct_caja_cap|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <small>
+                            {{ km_caja }} Km ({{ pct_caja_cap|floatformat:0 }}% de {{ max_caja }} Km)
+                        </small>
+                    </div>
+
+                    <div class="mb-2">
+                        {% with ultimo=caja.historial.first %}
+                        {% if ultimo %}
+                        <small class="text-muted">
+                            Último cambio: {{ ultimo.fecha|date:"d/m/Y" }}
+                        </small>
+                        {% else %}
+                        <small class="text-muted">Sin cambios registrados</small>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+
+                    <div class="mt-auto d-flex justify-content-end gap-2">
+                        <form method="post" action="{% url 'vehiculo_aceite_caja_cambiar' vehiculo_pk=vehiculo.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning btn-sm">Cambiar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts (datos seguros + JS externo) -->
+{{ km_motor|default:0|json_script:"km_motor" }}
+{{ km_caja|default:0|json_script:"km_caja" }}
+{{ max_motor|json_script:"max_motor" }}
+{{ max_caja|json_script:"max_caja" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'aceite/aceite.js' %}"></script>
+{% endblock %}

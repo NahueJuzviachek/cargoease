@@ -1,48 +1,78 @@
-# aceite/models.py
-from django.db import models
-from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django.db import models
+from django.utils import timezone
 
-ACEITE_MOTOR_MAX_KM = 50000
-ACEITE_CAJA_MAX_KM = 32000
+class TipoAceite(models.TextChoices):
+    MOTOR = "motor", "Motor"
+    CAJA = "caja", "Caja"
 
+class EstadoAceite(models.TextChoices):
+    EN_USO = "en_uso", "En uso"
+    CAMBIADO = "cambiado", "Cambiado"
 
-class AceiteMotor(models.Model):
-    vehiculo = models.ForeignKey("vehiculos.Vehiculo", on_delete=models.CASCADE, related_name="aceite_motor")
-    # ⬇️ km acumulados del ciclo actual (persistidos)
-    km = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal("0"))],
-        default=Decimal("0"),
-        help_text="Km acumulados desde el último cambio de aceite de motor."
+class Aceite(models.Model):
+    vehiculo = models.ForeignKey(
+        "vehiculos.Vehiculo",
+        on_delete=models.CASCADE,
+        related_name="aceites",
+        db_index=True
     )
-    filtros = models.BooleanField(default=False, help_text="¿Se cambiaron filtros en este cambio?")
-    fecha = models.DateField(db_index=True)
+    tipo = models.CharField(max_length=20, choices=TipoAceite.choices, db_index=True)
+
+    # Snapshot al momento de instalar/cambiar:
+    viajes_km_acumulados_al_instalar = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00"),
+        help_text="Suma de km de viajes del vehículo al momento de instalar/cambiar."
+    )
+
+    # Estado y control
+    km_acumulados = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    vida_util_km = models.PositiveIntegerField(
+        default=15000, help_text="Intervalo recomendado de cambio (km)."
+    )
+    ciclos = models.PositiveIntegerField(default=0)
+    estado = models.CharField(max_length=20, choices=EstadoAceite.choices, default=EstadoAceite.EN_USO)
+
+    fecha_instalacion = models.DateField(default=timezone.now)
+    notas = models.TextField(blank=True)
 
     class Meta:
-        db_table = "tablaAceiteMotor"
-        ordering = ["-fecha", "-id"]
+        db_table = "tablaAceite"
+        verbose_name = "Aceite"
+        verbose_name_plural = "Aceites"
+        ordering = ["vehiculo_id", "tipo", "-fecha_instalacion"]
 
     def __str__(self):
-        return f"Motor {self.vehiculo} - {self.fecha} ({self.km} km)"
+        return f"{self.vehiculo} – {self.get_tipo_display()} (ciclo {self.ciclos})"
+
+    @property
+    def porcentaje_uso(self) -> float:
+        if self.vida_util_km <= 0:
+            return 0.0
+        try:
+            return float((self.km_acumulados / Decimal(self.vida_util_km)) * 100)
+        except Exception:
+            return 0.0
 
 
-class AceiteCaja(models.Model):
-    vehiculo = models.ForeignKey("vehiculos.Vehiculo", on_delete=models.CASCADE, related_name="aceite_caja")
-    # ⬇️ km acumulados del ciclo actual (persistidos)
-    km = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal("0"))],
-        default=Decimal("0"),
-        help_text="Km acumulados desde el último cambio de aceite de caja."
+class AceiteCambio(models.Model):
+    """
+    Historial de cambios (reseteos). Guarda el km acumulado al cambiar.
+    """
+    aceite = models.ForeignKey(Aceite, on_delete=models.CASCADE, related_name="historial")
+    fecha = models.DateTimeField(default=timezone.now)
+    km_acumulados_al_cambio = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    notas = models.TextField(blank=True)
+    filtros_cambiados = models.BooleanField(
+        default=False,
+        help_text="Solo aplica a cambios de aceite de motor."
     )
-    fecha = models.DateField(db_index=True)
-
+    
     class Meta:
-        db_table = "tablaAceiteCaja"
-        ordering = ["-fecha", "-id"]
+        db_table = "tablaAceiteCambio"
+        verbose_name = "Cambio de aceite"
+        verbose_name_plural = "Cambios de aceite"
+        ordering = ["-fecha"]
 
     def __str__(self):
-        return f"Caja {self.vehiculo} - {self.fecha} ({self.km} km)"
+        return f"Cambio {self.aceite.get_tipo_display()} de {self.aceite.vehiculo} – {self.fecha:%d/%m/%Y}"

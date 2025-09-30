@@ -1,108 +1,58 @@
 # aceite/services.py
-from datetime import timedelta
 from decimal import Decimal
-
-from django.db.models import Sum
-from django.db.models.functions import Coalesce
+from django.db import transaction
 from django.utils import timezone
+from django.db.models import Sum
 
-from .models import AceiteMotor, AceiteCaja
-
-
-def _sumar_km_despues_de(vehiculo, fecha_excl=None) -> Decimal:
-    """
-    Suma km de viajes del vehículo.
-    Si fecha_excl está dada, suma viajes con fecha > fecha_excl (mismo día NO cuenta).
-    """
-    qs = vehiculo.viajes.all()
-    if fecha_excl:
-        qs = qs.filter(fecha__gt=fecha_excl)
-    # Coalesce evita None y siempre devuelve Decimal("0") si no hay viajes
-    return qs.aggregate(s=Coalesce(Sum("distancia"), Decimal("0")))["s"]
+from .models import Aceite, AceiteCambio, EstadoAceite, TipoAceite
 
 
-def _fecha_base_para_ciclo(vehiculo):
-    """
-    Si hay viajes: base = (mínima fecha de viaje) - 1 día, así cuentan TODOS los viajes existentes.
-    Si no hay viajes: base = hoy.
-    """
-    min_fecha = (
-        vehiculo.viajes.order_by("fecha")
-        .values_list("fecha", flat=True)
-        .first()
-    )
-    if min_fecha:
-        return min_fecha - timedelta(days=1)
-    return timezone.localdate()
+def _suma_km_viajes(vehiculo):
+    from viajes.models import Viaje
+    total = Viaje.objects.filter(vehiculo=vehiculo).aggregate(s=Sum("distancia"))["s"]
+    return Decimal(total or 0)
 
 
-# ---------------- MOTOR ----------------
-def asegurar_ciclo_motor(vehiculo) -> AceiteMotor:
-    """
-    Devuelve el ciclo 'abierto' (más reciente). Si no existe, lo crea con:
-    - fecha base = min fecha viaje - 1 día (o hoy)
-    - km = suma de viajes posteriores a esa base (puede ser 0 si no hay viajes)
-    """
-    ciclo = (
-        AceiteMotor.objects.filter(vehiculo=vehiculo)
-        .order_by("-fecha", "-id")
-        .first()
-    )
-    if ciclo:
-        return ciclo
-    base = _fecha_base_para_ciclo(vehiculo)
-    km = _sumar_km_despues_de(vehiculo, base)
-    return AceiteMotor.objects.create(
-        vehiculo=vehiculo,
-        fecha=base,
-        filtros=False,
-        km=km,
-    )
-
-
-def recalc_km_motor(vehiculo) -> AceiteMotor:
-    """
-    Recalcula y PERSISTE km del ciclo actual de motor.
-    """
-    ciclo = asegurar_ciclo_motor(vehiculo)
-    km = _sumar_km_despues_de(vehiculo, ciclo.fecha)
-    if ciclo.km != km:
-        ciclo.km = km
-        ciclo.save(update_fields=["km"])
-    return ciclo
-
-
-# ---------------- CAJA ----------------
-def asegurar_ciclo_caja(vehiculo) -> AceiteCaja:
-    ciclo = (
-        AceiteCaja.objects.filter(vehiculo=vehiculo)
-        .order_by("-fecha", "-id")
-        .first()
-    )
-    if ciclo:
-        return ciclo
-    base = _fecha_base_para_ciclo(vehiculo)
-    km = _sumar_km_despues_de(vehiculo, base)
-    return AceiteCaja.objects.create(
-        vehiculo=vehiculo,
-        fecha=base,
-        km=km,
-    )
-
-
-def recalc_km_caja(vehiculo) -> AceiteCaja:
-    ciclo = asegurar_ciclo_caja(vehiculo)
-    km = _sumar_km_despues_de(vehiculo, ciclo.fecha)
-    if ciclo.km != km:
-        ciclo.km = km
-        ciclo.save(update_fields=["km"])
-    return ciclo
-
-
-# ---------------- FACILITADOR ----------------
 def recalc_km_aceite_para_vehiculo(vehiculo):
     """
-    Llamá esto cada vez que se cree/edite/borre un Viaje del vehículo.
+    Recalcula km_acumulados para todos los aceites EN_USO del vehículo.
+    Lo llamás desde viajes (on_commit) y también lo podés usar manualmente.
     """
-    recalc_km_motor(vehiculo)
-    recalc_km_caja(vehiculo)
+    suma_actual = _suma_km_viajes(vehiculo)
+    aceites = Aceite.objects.filter(vehiculo=vehiculo, estado=EstadoAceite.EN_USO)
+    for a in aceites:
+        base = a.viajes_km_acumulados_al_instalar or Decimal("0")
+        a.km_acumulados = suma_actual - base
+        if a.km_acumulados < 0:
+            a.km_acumulados = Decimal("0")
+        a.save(update_fields=["km_acumulados"])
+
+
+@transaction.atomic
+def cambiar_aceite(aceite: Aceite, notas: str = "", filtros_cambiados: bool = False) -> Aceite:
+    """
+    Registra un cambio (reset):
+    - Guarda historial (con filtros_cambiados solo si es motor).
+    - Incrementa ciclos.
+    - Resetea km a 0 y actualiza snapshot al total de km de viajes actual.
+    """
+    suma_actual = _suma_km_viajes(aceite.vehiculo)
+
+    AceiteCambio.objects.create(
+        aceite=aceite,
+        fecha=timezone.now(),
+        km_acumulados_al_cambio=aceite.km_acumulados,
+        notas=notas or "",
+        filtros_cambiados=filtros_cambiados if aceite.tipo == TipoAceite.MOTOR else False,
+    )
+
+    aceite.ciclos += 1
+    aceite.km_acumulados = Decimal("0")
+    aceite.viajes_km_acumulados_al_instalar = suma_actual
+    aceite.fecha_instalacion = timezone.now().date()
+    aceite.estado = EstadoAceite.EN_USO
+    aceite.save(update_fields=[
+        "ciclos", "km_acumulados", "viajes_km_acumulados_al_instalar",
+        "fecha_instalacion", "estado"
+    ])
+    return aceite
