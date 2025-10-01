@@ -5,9 +5,6 @@ from .models import Aceite, AceiteCambio
 @admin.register(Aceite)
 class AceiteAdmin(admin.ModelAdmin):
     list_display = ("vehiculo", "tipo", "km_acumulados", "vida_util_km", "ciclos", "fecha_instalacion")
-    list_filter = ("tipo", "fecha_instalacion")
-    search_fields = ("vehiculo__dominio", "vehiculo__modelo")
-    ordering = ("vehiculo", "tipo", "-fecha_instalacion")
 
 @admin.register(AceiteCambio)
 class AceiteCambioAdmin(admin.ModelAdmin):

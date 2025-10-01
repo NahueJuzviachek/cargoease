@@ -10,21 +10,17 @@ class TipoAceite(models.TextChoices):
 class Aceite(models.Model):
     vehiculo = models.ForeignKey(
         "vehiculos.Vehiculo",
-        on_delete=models.CASCADE,      # permite borrar vehículo en cascada
+        on_delete=models.CASCADE,
         related_name="aceites",
         db_index=True,
     )
+
     tipo = models.CharField(max_length=20, choices=TipoAceite.choices, db_index=True)
-
-    viajes_km_acumulados_al_instalar = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     km_acumulados = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-
-    # La UI usa este máximo por ciclo. Lo seteamos según tipo en crear/cambiar.
+    # La vida útil la fijamos por tipo (Motor 30000, Caja 100000) al crear/cambiar
     vida_util_km = models.PositiveIntegerField(default=30000)
-
     ciclos = models.PositiveIntegerField(default=0)
     fecha_instalacion = models.DateField(default=timezone.now)
-    notas = models.TextField(blank=True)
 
     class Meta:
         db_table = "tablaAceite"
@@ -48,7 +44,6 @@ class AceiteCambio(models.Model):
     fecha = models.DateTimeField(default=timezone.now)
     km_acumulados_al_cambio = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     filtros_cambiados = models.BooleanField(default=False, help_text="Solo aplica a motor.")
-    notas = models.TextField(blank=True)
 
     class Meta:
         db_table = "tablaAceiteCambio"

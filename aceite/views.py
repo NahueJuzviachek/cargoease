@@ -25,20 +25,15 @@ def _suma_km_viajes(vehiculo):
     return Decimal(total or 0)
 
 def _ensure_aceite(vehiculo, tipo: str) -> Aceite:
-    """
-    Garantiza 1 registro por tipo; si no existe, lo crea
-    con snapshot y vida útil acorde al tipo.
-    """
     aceite = Aceite.objects.filter(vehiculo=vehiculo, tipo=tipo).first()
     if not aceite:
-        snapshot = _suma_km_viajes(vehiculo)
         vida_default = MAX_MOTOR if tipo == TipoAceite.MOTOR else MAX_CAJA
         aceite = Aceite.objects.create(
             vehiculo=vehiculo,
             tipo=tipo,
-            viajes_km_acumulados_al_instalar=snapshot,
-            km_acumulados=Decimal("0"),
+            km_acumulados=0,
             vida_util_km=vida_default,
+            # fecha_instalacion se setea por default=timezone.now
         )
     return aceite
 
@@ -72,7 +67,7 @@ def cambiar_aceite_motor(request, vehiculo_pk: int):
     vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_pk)
     motor = _ensure_aceite(vehiculo, TipoAceite.MOTOR)
     filtros = request.POST.get("filtros_cambiados") == "on"
-    cambiar_aceite(motor, notas=request.POST.get("notas",""), filtros_cambiados=filtros)
+    cambiar_aceite(motor, filtros_cambiados=filtros)
     messages.success(request, "Cambio de aceite de motor registrado.")
     return redirect("vehiculo_aceite", vehiculo_pk=vehiculo.pk)
 
@@ -80,7 +75,7 @@ def cambiar_aceite_motor(request, vehiculo_pk: int):
 def cambiar_aceite_caja(request, vehiculo_pk: int):
     vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_pk)
     caja = _ensure_aceite(vehiculo, TipoAceite.CAJA)
-    cambiar_aceite(caja, notas=request.POST.get("notas",""), filtros_cambiados=False)
+    cambiar_aceite(caja, filtros_cambiados=False)
     messages.success(request, "Cambio de aceite de caja registrado.")
     return redirect("vehiculo_aceite", vehiculo_pk=vehiculo.pk)
 

@@ -11,7 +11,7 @@ function readJSON(id, fallback = 0) {
     }
 }
 
-// Elegimos un step "lindo" para que el eje Y tenga más valores (ticks)
+// Elegimos un step para que el eje Y tenga más valores (ticks)
 function niceStep(maxTarget) {
     const candidates = [500, 1000, 2000, 5000, 10000, 20000, 25000, 50000, 100000, 200000];
     for (let s of candidates) {
