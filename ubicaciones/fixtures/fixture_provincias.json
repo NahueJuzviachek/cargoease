@@ -1,0 +1,512 @@
+[
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 1,
+    "fields": {
+      "pais": 1,
+      "nombre": "Buenos Aires",
+      "lat": -36.676942,
+      "lng": -60.558832
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 2,
+    "fields": {
+      "pais": 1,
+      "nombre": "Catamarca",
+      "lat": -27.335833,
+      "lng": -66.947682
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 3,
+    "fields": {
+      "pais": 1,
+      "nombre": "Chaco",
+      "lat": -26.386431,
+      "lng": -60.765831
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 4,
+    "fields": {
+      "pais": 1,
+      "nombre": "Chubut",
+      "lat": -43.788623,
+      "lng": -68.526759
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 5,
+    "fields": {
+      "pais": 1,
+      "nombre": "Ciudad Autónoma de Buenos Aires",
+      "lat": -34.614493,
+      "lng": -58.445856
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 6,
+    "fields": {
+      "pais": 1,
+      "nombre": "Corrientes",
+      "lat": -28.774305,
+      "lng": -57.801219
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 7,
+    "fields": {
+      "pais": 1,
+      "nombre": "Córdoba",
+      "lat": -32.142933,
+      "lng": -63.801753
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 8,
+    "fields": {
+      "pais": 1,
+      "nombre": "Entre Ríos",
+      "lat": -32.058874,
+      "lng": -59.201448
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 9,
+    "fields": {
+      "pais": 1,
+      "nombre": "Formosa",
+      "lat": -24.894973,
+      "lng": -59.932441
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 10,
+    "fields": {
+      "pais": 1,
+      "nombre": "Jujuy",
+      "lat": -23.320078,
+      "lng": -65.764252
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 11,
+    "fields": {
+      "pais": 1,
+      "nombre": "La Pampa",
+      "lat": -37.131554,
+      "lng": -65.446655
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 12,
+    "fields": {
+      "pais": 1,
+      "nombre": "La Rioja",
+      "lat": -29.685776,
+      "lng": -67.181736
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 13,
+    "fields": {
+      "pais": 1,
+      "nombre": "Mendoza",
+      "lat": -34.629887,
+      "lng": -68.583123
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 14,
+    "fields": {
+      "pais": 1,
+      "nombre": "Misiones",
+      "lat": -26.875397,
+      "lng": -54.651697
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 15,
+    "fields": {
+      "pais": 1,
+      "nombre": "Neuquén",
+      "lat": -38.641758,
+      "lng": -70.118571
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 16,
+    "fields": {
+      "pais": 1,
+      "nombre": "Río Negro",
+      "lat": -40.405796,
+      "lng": -67.22933
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 17,
+    "fields": {
+      "pais": 1,
+      "nombre": "Salta",
+      "lat": -24.299134,
+      "lng": -64.814463
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 18,
+    "fields": {
+      "pais": 1,
+      "nombre": "San Juan",
+      "lat": -30.865368,
+      "lng": -68.889491
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 19,
+    "fields": {
+      "pais": 1,
+      "nombre": "San Luis",
+      "lat": -33.757726,
+      "lng": -66.02813
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 20,
+    "fields": {
+      "pais": 1,
+      "nombre": "Santa Cruz",
+      "lat": -48.815485,
+      "lng": -69.955762
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 21,
+    "fields": {
+      "pais": 1,
+      "nombre": "Santa Fe",
+      "lat": -30.706927,
+      "lng": -60.949837
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 22,
+    "fields": {
+      "pais": 1,
+      "nombre": "Santiago del Estero",
+      "lat": -27.782412,
+      "lng": -63.252387
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 23,
+    "fields": {
+      "pais": 1,
+      "nombre": "Tierra del Fuego, Antártida e Islas del Atlántico Sur",
+      "lat": -82.521518,
+      "lng": -50.742749
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 24,
+    "fields": {
+      "pais": 1,
+      "nombre": "Tucumán",
+      "lat": -26.9478,
+      "lng": -65.364758
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 25,
+    "fields": {
+      "pais": 2,
+      "nombre": "Acre",
+      "lat": -9.974993,
+      "lng": -67.824302
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 26,
+    "fields": {
+      "pais": 2,
+      "nombre": "Alagoas",
+      "lat": -9.649849,
+      "lng": -35.708949
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 27,
+    "fields": {
+      "pais": 2,
+      "nombre": "Amapá",
+      "lat": 0.034934,
+      "lng": -51.069392
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 28,
+    "fields": {
+      "pais": 2,
+      "nombre": "Amazonas",
+      "lat": -3.119028,
+      "lng": -60.021731
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 29,
+    "fields": {
+      "pais": 2,
+      "nombre": "Bahia",
+      "lat": -12.971611,
+      "lng": -38.50174
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 30,
+    "fields": {
+      "pais": 2,
+      "nombre": "Ceará",
+      "lat": -3.71722,
+      "lng": -38.54306
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 31,
+    "fields": {
+      "pais": 2,
+      "nombre": "Distrito Federal",
+      "lat": -15.793889,
+      "lng": -47.882778
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 32,
+    "fields": {
+      "pais": 2,
+      "nombre": "Espírito Santo",
+      "lat": -20.3155,
+      "lng": -40.3128
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 33,
+    "fields": {
+      "pais": 2,
+      "nombre": "Goiás",
+      "lat": -16.6864,
+      "lng": -49.2643
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 34,
+    "fields": {
+      "pais": 2,
+      "nombre": "Maranhão",
+      "lat": -2.53911,
+      "lng": -44.2829
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 35,
+    "fields": {
+      "pais": 2,
+      "nombre": "Mato Grosso",
+      "lat": -15.601,
+      "lng": -56.0974
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 36,
+    "fields": {
+      "pais": 2,
+      "nombre": "Mato Grosso do Sul",
+      "lat": -20.46971,
+      "lng": -54.620121
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 37,
+    "fields": {
+      "pais": 2,
+      "nombre": "Minas Gerais",
+      "lat": -19.916681,
+      "lng": -43.934493
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 38,
+    "fields": {
+      "pais": 2,
+      "nombre": "Paraná",
+      "lat": -25.42836,
+      "lng": -49.273251
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 39,
+    "fields": {
+      "pais": 2,
+      "nombre": "Paraíba",
+      "lat": -7.11509,
+      "lng": -34.8641
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 40,
+    "fields": {
+      "pais": 2,
+      "nombre": "Pará",
+      "lat": -1.455833,
+      "lng": -48.503889
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 41,
+    "fields": {
+      "pais": 2,
+      "nombre": "Pernambuco",
+      "lat": -8.047562,
+      "lng": -34.877001
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 42,
+    "fields": {
+      "pais": 2,
+      "nombre": "Piauí",
+      "lat": -5.091944,
+      "lng": -42.803361
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 43,
+    "fields": {
+      "pais": 2,
+      "nombre": "Rio de Janeiro",
+      "lat": -22.906847,
+      "lng": -43.172896
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 44,
+    "fields": {
+      "pais": 2,
+      "nombre": "Rio Grande do Norte",
+      "lat": -5.795,
+      "lng": -35.2094
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 45,
+    "fields": {
+      "pais": 2,
+      "nombre": "Rio Grande do Sul",
+      "lat": -30.034647,
+      "lng": -51.217658
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 46,
+    "fields": {
+      "pais": 2,
+      "nombre": "Rondônia",
+      "lat": -8.76077,
+      "lng": -63.90041
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 47,
+    "fields": {
+      "pais": 2,
+      "nombre": "Roraima",
+      "lat": 2.82351,
+      "lng": -60.67583
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 48,
+    "fields": {
+      "pais": 2,
+      "nombre": "Santa Catarina",
+      "lat": -27.59487,
+      "lng": -48.548222
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 49,
+    "fields": {
+      "pais": 2,
+      "nombre": "Sergipe",
+      "lat": -10.9091,
+      "lng": -37.0677
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 50,
+    "fields": {
+      "pais": 2,
+      "nombre": "São Paulo",
+      "lat": -23.55052,
+      "lng": -46.633308
+    }
+  },
+  {
+    "model": "ubicaciones.provincia",
+    "pk": 51,
+    "fields": {
+      "pais": 2,
+      "nombre": "Tocantins",
+      "lat": -10.184,
+      "lng": -48.3336
+    }
+  }
+]

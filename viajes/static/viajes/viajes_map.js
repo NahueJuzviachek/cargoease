@@ -1,15 +1,15 @@
 // static/viajes/viajes_map.js
 (function () {
     // --- Config ---
-    // Cambiá el perfil si usás camiones: 'driving-car' | 'driving-hgv'
-    const ORS_PROFILE = 'driving-hgv'; // o 'driving-car'
+    const PROFILE = 'driving-hgv';   // SIEMPRE HGV
+    const ALT_MAX_KM = 100;          // hasta aquí intentamos alternativas
+    const LEG_MAX_KM = 90;           // tamaño de cada leg si necesitamos waypoints
 
-    // --- Helpers DOM ---
+    // --- DOM ---
     const $ = (id) => document.getElementById(id);
     const mapEl = $('map');
     const meta = $('route-meta');
     const distanciaInput = $('id_distancia');
-
     const sLoc = $('id_salida_localidad');
     const dLoc = $('id_destino_localidad');
 
@@ -22,179 +22,295 @@
     }).addTo(map);
     setTimeout(() => { try { map.invalidateSize(true); } catch (_) { } }, 120);
 
-    let polylines = [];     // capas dibujadas
-    let segmentsCache = []; // info de segmentos paralela a polylines
+    let polylines = [];
+    let markers = [];
 
+    // --- Utils ---
     function formatKm(m) { return (m / 1000).toFixed(2); }
     function formatMin(s) { return Math.round(s / 60); }
+    function isNumber(n) { return typeof n === 'number' && isFinite(n); }
 
     function clearRoutes() {
         polylines.forEach(pl => map.removeLayer(pl));
+        markers.forEach(mk => map.removeLayer(mk));
         polylines = [];
-        segmentsCache = [];
+        markers = [];
         if (meta) meta.textContent = '';
     }
 
-    // --- Obtener coords de Localidad por AJAX (evita Nominatim) ---
-    async function localidadCoords(localidadId) {
-        if (!localidadId) return null;
-        if (!window.URL_LOCALIDAD_COORDS) {
-            console.error('[CE] Falta window.URL_LOCALIDAD_COORDS en el template');
-            return null;
+    function addMarker(lat, lng, label) {
+        const mk = L.marker([lat, lng], { title: label || '' }).addTo(map);
+        markers.push(mk);
+        return mk;
+    }
+
+    // Haversine (solo para estimar largo/corto y segmentar)
+    function haversineMeters([lat1, lng1], [lat2, lng2]) {
+        const R = 6371000, toRad = d => d * Math.PI / 180;
+        const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return 2 * R * Math.asin(Math.sqrt(a));
+    }
+
+    // Segmentación en puntos cada ~LEG_MAX_KM
+    function segmentizeByDistance(start, end, maxKm = LEG_MAX_KM) {
+        const totalM = haversineMeters(start, end);
+        const maxM = maxKm * 1000;
+        const nSegments = Math.max(1, Math.ceil(totalM / maxM));
+        if (nSegments === 1) return [start, end];
+
+        const pts = [];
+        for (let i = 0; i <= nSegments; i++) {
+            const t = i / nSegments;
+            const lat = start[0] + (end[0] - start[0]) * t;
+            const lng = start[1] + (end[1] - start[1]) * t;
+            pts.push([lat, lng]);
         }
+        return pts;
+    }
+
+    // Normalización coords backend
+    function looksLikeLatLng(lat, lng) {
+        return isNumber(lat) && isNumber(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    }
+    function normalizeCoords([lat, lng]) {
+        if (!looksLikeLatLng(lat, lng)) return null;
+        if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return [lng, lat];
+        return [lat, lng];
+    }
+    async function localidadCoords(localidadId) {
+        if (!localidadId || !window.URL_LOCALIDAD_COORDS) return null;
         try {
             const res = await fetch(`${window.URL_LOCALIDAD_COORDS}?localidad=${encodeURIComponent(localidadId)}`);
-            if (!res.ok) {
-                console.error('[CE] AJAX localidad coords HTTP', res.status);
-                return null;
-            }
+            if (!res.ok) return null;
             const data = await res.json();
-            if (typeof data.lat === 'number' && typeof data.lng === 'number') {
-                return [data.lat, data.lng]; // [lat, lng]
-            }
-        } catch (e) {
-            console.error('[CE] AJAX localidad coords error', e);
-        }
-        return null;
+            const raw = [data.lat, data.lng];
+            if (!isNumber(raw[0]) || !isNumber(raw[1])) return null;
+            return normalizeCoords(raw);
+        } catch { return null; }
     }
 
-    // --- ORS por POST con alternative_routes + fallback shortest ---
-    async function orsRutasAlternativas(coordOrigen, coordDestino) {
-        const key = window.ORS_API_KEY || '';
-        if (!key) {
-            meta && (meta.textContent = 'Falta ORS_API_KEY en settings.py / contexto.');
-            console.error('[CE] Falta ORS_API_KEY');
-            return null;
+    // ORS helpers
+    function coordsLngLat(a, b) {
+        return [
+            [a[1], a[0]], // [lng, lat]
+            [b[1], b[0]]
+        ];
+    }
+    function toLngLatList(latlngList) {
+        return latlngList.map(([lat, lng]) => [lng, lat]);
+    }
+    function getDistDur(ruta) {
+        const sum = ruta?.properties?.summary;
+        if (sum && (isNumber(sum.distance) || isNumber(sum.duration))) {
+            return { distance: sum.distance ?? null, duration: sum.duration ?? null };
         }
+        const segs = ruta?.properties?.segments;
+        if (Array.isArray(segs) && segs.length) {
+            const distance = segs.reduce((acc, s) => acc + (s?.distance || 0), 0);
+            const duration = segs.reduce((acc, s) => acc + (s?.duration || 0), 0);
+            return { distance, duration };
+        }
+        return { distance: null, duration: null };
+    }
 
-        const endpoint = `https://api.openrouteservice.org/v2/directions/${ORS_PROFILE}/geojson`;
+    // 1) Cortas: HGV con alternativas (si 2004, devolvemos null)
+    async function orsHgvAlternativas(a, b) {
+        const key = window.ORS_API_KEY || '';
+        if (!key) return null;
+
+        const endpoint = `https://api.openrouteservice.org/v2/directions/${PROFILE}/geojson`;
         const baseBody = {
-            coordinates: [
-                [coordOrigen[1], coordOrigen[0]], // ORS espera [lng, lat]
-                [coordDestino[1], coordDestino[0]]
-            ],
-            // Más agresivo: acepta rutas menos parecidas y algo más “caras”
+            coordinates: coordsLngLat(a, b),
             alternative_routes: { target_count: 3, share_factor: 0.5, weight_factor: 1.9 },
             instructions: false
-            // preference: 'fastest' // implícito
         };
 
-        // 1) POST principal (fastest)
-        let features = [];
-        try {
-            const r1 = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Authorization': key, 'Content-Type': 'application/json' },
-                body: JSON.stringify(baseBody)
-            });
-            if (!r1.ok) {
-                console.error('[CE][ORS fastest] HTTP', r1.status, await r1.text().catch(() => '-'));
-                return null;
-            }
-            const d1 = await r1.json();
-            features = Array.isArray(d1.features) ? d1.features.slice(0) : [];
-            console.log('[CE][ORS] fastest features:', features.length);
-        } catch (e) {
-            console.error('[CE][ORS fastest] error de red:', e);
+        // fastest
+        let feats = [];
+        const r1 = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Authorization': key, 'Content-Type': 'application/json' },
+            body: JSON.stringify(baseBody)
+        });
+        const raw1 = await r1.text();
+        if (!r1.ok) {
+            // Si code 2004 (límite 150 km o similar), devolvemos null para que el caller use simple/waypoints
+            if (r1.status === 400 && raw1.includes('"code":2004')) return null;
             return null;
         }
+        let d1; try { d1 = JSON.parse(raw1); } catch { return null; }
+        feats = Array.isArray(d1.features) ? d1.features.slice(0) : [];
+        if (feats.length >= 2) return feats;
 
-        // 2) Fallback: si falta alternativa, pedimos shortest y agregamos si difiere
-        if (features.length < 2) {
-            const bodyShortest = { ...baseBody, preference: 'shortest' };
-            try {
-                const r2 = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Authorization': key, 'Content-Type': 'application/json' },
-                    body: JSON.stringify(bodyShortest)
-                });
-                if (r2.ok) {
-                    const d2 = await r2.json();
-                    const alt = Array.isArray(d2.features) ? d2.features[0] : null;
-                    if (alt) {
-                        const d0 = features[0]?.properties?.segments?.[0]?.distance ?? null;
-                        const dAlt = alt?.properties?.segments?.[0]?.distance ?? null;
-                        const distinta = (d0 && dAlt) ? (Math.abs(d0 - dAlt) / d0 > 0.03) : true; // tolerancia 3%
-                        if (distinta) {
-                            features.push(alt);
-                            console.log('[CE][ORS] se agregó shortest como alternativa');
-                        } else {
-                            console.log('[CE][ORS] shortest ~igual a fastest; no se agrega');
-                        }
-                    }
-                } else {
-                    console.warn('[CE][ORS shortest] HTTP', r2.status, await r2.text().catch(() => '-'));
-                }
-            } catch (e2) {
-                console.warn('[CE][ORS shortest] error de red:', e2);
-            }
-        }
+        // shortest como posible alternativa
+        const bodyShortest = { ...baseBody, preference: 'shortest' };
+        const r2 = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Authorization': key, 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyShortest)
+        });
+        const raw2 = await r2.text();
+        if (!r2.ok) return feats.length ? feats : null;
 
-        return features.length ? features : null;
+        let d2; try { d2 = JSON.parse(raw2); } catch { return feats.length ? feats : null; }
+        const alt = d2 && Array.isArray(d2.features) ? d2.features[0] : null;
+        if (!alt) return feats.length ? feats : null;
+
+        const { distance: d0 } = getDistDur(feats[0]);
+        const { distance: dAlt } = getDistDur(alt);
+        const distinta = (isNumber(d0) && isNumber(dAlt)) ? (Math.abs(d0 - dAlt) / d0 > 0.03) : true;
+        if (distinta) feats.push(alt);
+
+        return feats.length ? feats : null;
     }
 
-    function dibujarRutas(rutas) {
-        clearRoutes();
+    // 2) Simple HGV (SIN alternativas)
+    async function orsHgvSimple(a, b) {
+        const key = window.ORS_API_KEY || '';
+        if (!key) return null;
 
+        const endpoint = `https://api.openrouteservice.org/v2/directions/${PROFILE}/geojson`;
+        const body = { coordinates: coordsLngLat(a, b), instructions: false };
+
+        const r = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Authorization': key, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const raw = await r.text();
+        if (!r.ok) {
+            // si acá igual viniera 2004 (raro sin alternativas), devolver null para intentar multi-waypoint
+            return null;
+        }
+        let j; try { j = JSON.parse(raw); } catch { return null; }
+        const feats = Array.isArray(j.features) ? j.features : [];
+        return feats.length ? feats : null;
+    }
+
+    // 3) HGV Multi-waypoint (1 sola request, pasando por puntos intermedios)
+    async function orsHgvMulti(latlngList) {
+        const key = window.ORS_API_KEY || '';
+        if (!key) return null;
+
+        if (!Array.isArray(latlngList) || latlngList.length < 2) return null;
+
+        const endpoint = `https://api.openrouteservice.org/v2/directions/${PROFILE}/geojson`;
+        const coords = toLngLatList(latlngList);
+        const body = { coordinates: coords, instructions: false };
+
+        const r = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Authorization': key, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const raw = await r.text();
+        if (!r.ok) {
+            return null;
+        }
+        let j; try { j = JSON.parse(raw); } catch { return null; }
+        const feats = Array.isArray(j.features) ? j.features : [];
+        return feats.length ? feats : null;
+    }
+
+    // --- Dibujo ---
+    function dibujarFeatures(rutas) {
         rutas.forEach((ruta, idx) => {
-            // GeoJSON: LineString con coordinates [lng,lat]
             const coords = ruta.geometry.coordinates.map(c => [c[1], c[0]]);
             const color = idx === 0 ? 'blue' : 'gray';
-            const seg = ruta.properties?.segments?.[0] || null;
 
             const poly = L.polyline(coords, { color, weight: 4, opacity: 0.9 }).addTo(map);
             polylines.push(poly);
-            segmentsCache.push(seg);
 
             if (idx === 0) {
                 map.fitBounds(poly.getBounds(), { padding: [20, 20] });
-                if (seg) {
-                    distanciaInput && (distanciaInput.value = formatKm(seg.distance));
-                    meta && (meta.textContent = `Ruta principal → ${formatKm(seg.distance)} km · ${formatMin(seg.duration)} min`);
+
+                const { distance, duration } = getDistDur(ruta);
+                if (isNumber(distance)) distanciaInput && (distanciaInput.value = formatKm(distance));
+                if (meta) {
+                    if (isNumber(distance) && isNumber(duration)) {
+                        meta.textContent = `Ruta principal (HGV) → ${formatKm(distance)} km · ${formatMin(duration)} min`;
+                    } else if (isNumber(distance)) {
+                        meta.textContent = `Ruta principal (HGV) → ${formatKm(distance)} km`;
+                    } else {
+                        meta.textContent = 'Ruta principal (HGV) cargada';
+                    }
                 }
             }
 
             poly.on('click', () => {
                 polylines.forEach(l => l.setStyle({ color: 'gray' }));
                 poly.setStyle({ color: 'red' });
-                if (seg) {
-                    distanciaInput && (distanciaInput.value = formatKm(seg.distance));
-                    meta && (meta.textContent = `Ruta seleccionada → ${formatKm(seg.distance)} km · ${formatMin(seg.duration)} min`);
+                const { distance, duration } = getDistDur(ruta);
+                if (isNumber(distance)) distanciaInput && (distanciaInput.value = formatKm(distance));
+                if (meta) {
+                    if (isNumber(distance) && isNumber(duration)) {
+                        meta.textContent = `Ruta seleccionada (HGV) → ${formatKm(distance)} km · ${formatMin(duration)} min`;
+                    } else if (isNumber(distance)) {
+                        meta.textContent = `Ruta seleccionada (HGV) → ${formatKm(distance)} km`;
+                    } else {
+                        meta.textContent = 'Ruta seleccionada (HGV)';
+                    }
                 }
             });
         });
 
         if (rutas.length === 1 && meta) {
-            meta.textContent += ' · No hay rutas alternativas para este tramo';
+            meta.textContent += ' · Sin alternativas para este tramo (HGV)';
         }
     }
 
+    // --- Update principal (SIEMPRE HGV) ---
     async function update() {
         const salidaId = sLoc?.value;
         const destinoId = dLoc?.value;
         if (!salidaId || !destinoId) { clearRoutes(); return; }
 
-        meta && (meta.textContent = 'Calculando ruta...');
+        meta && (meta.textContent = 'Calculando ruta (HGV)...');
         try {
-            // Coordenadas DIRECTAS desde tus Localidades (sin Nominatim)
-            const [coordOrigen, coordDestino] = await Promise.all([
+            const [a, b] = await Promise.all([
                 localidadCoords(salidaId),
                 localidadCoords(destinoId)
             ]);
-
-            if (!coordOrigen || !coordDestino) {
+            if (!a || !b) {
                 clearRoutes();
                 meta && (meta.textContent = 'No se pudieron obtener coordenadas de salida/destino.');
                 return;
             }
 
-            const rutas = await orsRutasAlternativas(coordOrigen, coordDestino);
-            if (!rutas || rutas.length === 0) {
-                clearRoutes();
-                meta && (meta.textContent = 'No se encontraron rutas para este recorrido.');
+            clearRoutes();
+            addMarker(a[0], a[1], 'Salida');
+            addMarker(b[0], b[1], 'Destino');
+
+            const approxKm = haversineMeters(a, b) / 1000;
+
+            // 1) Corto → intento con alternativas (HGV)
+            if (approxKm <= ALT_MAX_KM) {
+                let rutas = await orsHgvAlternativas(a, b);
+                if (rutas && rutas.length) { dibujarFeatures(rutas); return; }
+                // 2) Fallback corto → simple HGV
+                rutas = await orsHgvSimple(a, b);
+                if (rutas && rutas.length) { dibujarFeatures(rutas); return; }
+                // 3) último recurso corto → multi HGV (raro que haga falta)
+                const ptsC = segmentizeByDistance(a, b, LEG_MAX_KM);
+                rutas = await orsHgvMulti(ptsC);
+                if (rutas && rutas.length) { dibujarFeatures(rutas); return; }
+                meta && (meta.textContent = 'No se pudo obtener la ruta por carretera (HGV) para este tramo corto.');
                 return;
             }
-            dibujarRutas(rutas);
+
+            // Largo:
+            // 1) Simple HGV (sin alternativas)
+            let rutas = await orsHgvSimple(a, b);
+            if (rutas && rutas.length) { dibujarFeatures(rutas); return; }
+
+            // 2) Si el servidor devuelve 2004 u otro límite, probamos una sola request con WAYPOINTS (HGV)
+            const pts = segmentizeByDistance(a, b, LEG_MAX_KM);
+            rutas = await orsHgvMulti(pts);
+            if (rutas && rutas.length) { dibujarFeatures(rutas); return; }
+
+            // 3) No dibujamos línea recta (pediste siempre carretera)
+            meta && (meta.textContent = 'No se pudo obtener la ruta por carretera (HGV) para este tramo largo.');
         } catch (e) {
             clearRoutes();
             meta && (meta.textContent = 'Error calculando ruta (ver consola).');
@@ -202,10 +318,10 @@
         }
     }
 
-    // Disparadores (cuando cambian localidades)
+    // eventos
     sLoc?.addEventListener('change', update);
     dLoc?.addEventListener('change', update);
 
-    // Intento inicial (modo edición)
+    // inicial
     update();
 })();

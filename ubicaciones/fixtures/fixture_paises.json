@@ -1,0 +1,20 @@
+[
+  {
+    "model": "ubicaciones.pais",
+    "pk": 1,
+    "fields": {
+      "nombre": "Argentina",
+      "lat": -38.416097,
+      "lng": -63.616672
+    }
+  },
+  {
+    "model": "ubicaciones.pais",
+    "pk": 2,
+    "fields": {
+      "nombre": "Brasil",
+      "lat": -14.235004,
+      "lng": -51.92528
+    }
+  }
+]

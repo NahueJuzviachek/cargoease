@@ -5,11 +5,14 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
-from django.db import transaction  # ⬅️ para on_commit
+from django.db import transaction  # para on_commit
+
+from django.http import JsonResponse, Http404  # ⬅️ AJAX coords
+from ubicaciones.models import Localidad       # ⬅️ AJAX coords
 
 from .models import Viaje, GastoExtra
 from .forms import ViajeForm
-from .forms import GastoExtraForm  # <-- formulario del gasto extra
+from .forms import GastoExtraForm  # formulario del gasto extra
 from vehiculos.models import Vehiculo
 
 # ⬅️ servicio que actualiza los km persistidos de aceite (motor y caja)
@@ -74,7 +77,7 @@ class VehiculoViajeCreateView(ORSContextMixin, CreateView):
         # Asociamos el viaje al vehículo del URL
         form.instance.vehiculo = self.vehiculo
         resp = super().form_valid(form)
-        # ⬇️ Recalcular km de aceite al confirmar la transacción
+        # Recalcular km de aceite al confirmar la transacción
         transaction.on_commit(lambda: recalc_km_aceite_para_vehiculo(self.vehiculo))
         return resp
 
@@ -116,7 +119,7 @@ class VehiculoViajeUpdateView(ORSContextMixin, UpdateView):
         # Aseguramos la relación aunque el campo esté disabled
         form.instance.vehiculo = self.vehiculo
         resp = super().form_valid(form)
-        # ⬇️ Recalcular km de aceite al confirmar la transacción
+        # Recalcular km de aceite al confirmar la transacción
         transaction.on_commit(lambda: recalc_km_aceite_para_vehiculo(self.vehiculo))
         return resp
 
@@ -142,7 +145,7 @@ class VehiculoViajeDeleteView(ORSContextMixin, DeleteView):
         self.object = self.get_object()
         vehiculo = self.object.vehiculo
         resp = super().delete(request, *args, **kwargs)
-        # ⬇️ Recalcular km de aceite al confirmar la transacción de borrado
+        # Recalcular km de aceite al confirmar la transacción de borrado
         transaction.on_commit(lambda: recalc_km_aceite_para_vehiculo(vehiculo))
         return resp
 
@@ -196,3 +199,26 @@ def gasto_extra_eliminar(request, viaje_id, gasto_id):
 
     # Plantilla de confirmación mínima (o podés usar un modal/confirm JS)
     return render(request, "viajes/gasto_extra_confirm_delete.html", {"viaje": viaje, "gasto": gasto})
+
+
+# -----------------------------
+# AJAX: Coordenadas de Localidad (para el mapa)
+# -----------------------------
+def ajax_localidad_coords(request):
+    """
+    Devuelve lat/lng (float) para una Localidad via ?localidad=<id>.
+    Usado por static/viajes/viajes_map.js para trazar la ruta sin geocodificar por nombre.
+    """
+    loc_id = request.GET.get("localidad")
+    if not loc_id:
+        return JsonResponse({"error": "Falta parámetro 'localidad'."}, status=400)
+
+    try:
+        loc = Localidad.objects.only("lat", "lng").get(pk=loc_id)
+    except Localidad.DoesNotExist:
+        raise Http404("Localidad no encontrada")
+
+    if loc.lat is None or loc.lng is None:
+        return JsonResponse({"error": "Localidad sin coordenadas."}, status=422)
+
+    return JsonResponse({"lat": float(loc.lat), "lng": float(loc.lng)})
