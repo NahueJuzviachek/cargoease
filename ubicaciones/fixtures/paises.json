@@ -1,0 +1,13 @@
+[
+    {
+      "model": "ubicaciones.pais",
+      "pk": 1,
+      "fields": { "nombre": "Argentina" }
+    },
+    {
+      "model": "ubicaciones.pais",
+      "pk": 2,
+      "fields": { "nombre": "Brasil" }
+    }
+  ]
+  

@@ -1,18 +1,18 @@
 /* Navbar */
 .navbar-ce {
-  background-color: #FFF3DF;
-  --bs-navbar-color: #C08C62;
-  --bs-navbar-hover-color: #A06F45;
-  --bs-navbar-active-color: #A06F45;
-  --bs-navbar-brand-color: #C08C62;
-  --bs-navbar-brand-hover-color: #A06F45;
-  --bs-navbar-toggler-border-color: #C08C62;
+  background-color: #f5e49a;
+  --bs-navbar-color: #865b38;
+  --bs-navbar-hover-color: #865b38;
+  --bs-navbar-active-color: #865b38;
+  --bs-navbar-brand-color: #865b38;
+  --bs-navbar-brand-hover-color: ##865b38;
+  --bs-navbar-toggler-border-color: ##865b38;
 }
 
 .footer-ce {
-  background: #FFF3DF;
+  background: #f5e49a;
   /* mismo fondo que la navbar */
-  color: #C08C62;
+  color: #865b38;
   /* marrón clarito de la navbar */
   border-top: 1px solid rgba(0, 0, 0, .06);
 }
