@@ -1,9 +1,9 @@
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
-
 from .models import Vehiculo
 from .forms import VehiculoForm
+
 
 class VehiculoListView(ListView):
     model = Vehiculo

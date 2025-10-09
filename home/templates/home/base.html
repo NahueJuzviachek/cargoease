@@ -37,7 +37,9 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'vehiculos_list' %}">Vehículos</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'neumaticos_list' %}">Neumáticos</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'soporte:form' %}">Soporte</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Cerrar Sesion</a></li>
+          <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#logoutModal">
+            Cerrar Sesión
+          </a>
         </ul>
       </div>
     </div>
@@ -60,8 +62,29 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
     crossorigin="anonymous"></script>
+  <!-- Modal global de cierre de sesión -->
+  <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-3">
+        <div class="modal-header">
+          <h5 class="modal-title" id="logoutModalLabel">Confirmar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          ¿Desea cerrar sesión?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Confirmar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  {% block scripts %}{% endblock %}
 </body>
+{% block scripts %}{% endblock %}
 
 </html>

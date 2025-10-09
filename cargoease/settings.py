@@ -81,9 +81,10 @@ STATIC_URL = 'static/'
 
 WSGI_APPLICATION = 'cargoease.wsgi.application'
 
-LOGIN_URL = 'login'            # el nombre de tu ruta de login
-LOGIN_REDIRECT_URL = 'home'    # adonde va tras loguearse
-LOGOUT_REDIRECT_URL = 'login'  # adonde va tras cerrar sesión
+LLOGIN_URL = "/login/"          
+LOGIN_REDIRECT_URL = "/"        #donde vas tras loguearse 
+LOGOUT_REDIRECT_URL = "/login/" #done vas tras cerrar sesion 
+APPEND_SLASH = True   
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

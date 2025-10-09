@@ -2,15 +2,14 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.shortcuts import render, redirect
 from django.contrib import messages
-
 from .forms import SoporteForm
 
-ASUNTO_SOPORTE = "Informe de Problema"
 
 def soporte_view(request):
     if request.method == "POST":
         form = SoporteForm(request.POST)
         if form.is_valid():
+            ASUNTO_SOPORTE = "Informe de Problema"
             nombre = form.cleaned_data["nombre"]
             email_usuario = form.cleaned_data["email"]
             mensaje_usuario = form.cleaned_data["mensaje"]

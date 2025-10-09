@@ -3,7 +3,6 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
-
 from .models import Cliente
 from .forms import ClienteForm
 from ubicaciones.models import Provincia, Localidad

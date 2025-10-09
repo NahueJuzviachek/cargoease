@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.db import transaction  # para on_commit
-
+from django.contrib.auth.decorators import login_required 
 from django.http import JsonResponse, Http404  # ⬅️ AJAX coords
 from ubicaciones.models import Localidad       # ⬅️ AJAX coords
 
@@ -14,20 +14,8 @@ from .models import Viaje, GastoExtra
 from .forms import ViajeForm
 from .forms import GastoExtraForm  # formulario del gasto extra
 from vehiculos.models import Vehiculo
-
-# ⬅️ servicio que actualiza los km persistidos de aceite (motor y caja)
+from .mixins import ORSContextMixin
 from aceite.services import recalc_km_aceite_para_vehiculo
-
-
-class ORSContextMixin:
-    """
-    Mixin para inyectar en el template la API key de OpenRouteService (ORS_API_KEY),
-    que usa el JS del mapa para calcular rutas alternativas.
-    """
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["ORS_API_KEY"] = getattr(settings, "ORS_API_KEY", "")
-        return ctx
 
 
 class ViajeListView(ORSContextMixin, ListView):

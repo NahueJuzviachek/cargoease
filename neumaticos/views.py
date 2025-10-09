@@ -7,8 +7,10 @@ from .services import (
     enviar_a_almacen, montar_en_vehiculo, crear_neumatico_en_almacen,
     eliminar_neumaticos_del_almacen, recapar_neumaticos, reubicar_neumaticos
 )
+
 from .constants import CAPS_POR_TIPO
 from .utils import nro_to_pos
+
 
 def neumaticos_list(request):
     vehiculos = listar_vehiculos_con_neumaticos()
