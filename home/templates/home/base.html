@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="{% static 'home/css/Styles.css' %}">
 </head>
 
-<body class="bg-light d-flex flex-column min-vh-100"><!-- <- añadido para fijar el footer abajo -->
+<body class="bg-light d-flex flex-column min-vh-100"><!-- <- añadido para fijar el footer abajo --><!-- <-  -->
 
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-light navbar-ce">
@@ -36,8 +36,8 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'conductores_list' %}">Conductores</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'vehiculos_list' %}">Vehículos</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'neumaticos_list' %}">Neumáticos</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'soporte_list' %}">Soporte</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'cerrar_sesion' %}">Cerrar Sesion</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'soporte' %}">Soporte</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Cerrar Sesion</a></li>
         </ul>
       </div>
     </div>

@@ -7,6 +7,3 @@ def home(request):
 
 
 
-def reportes(request):
-    return render(request, "home/soporte.html")
-
