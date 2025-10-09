@@ -22,7 +22,10 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-light navbar-ce">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="{% url 'home' %}">CargoEase</a>
+      <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+        <img src="{% static 'home/img/logo.png' %}" alt="Logo" width="40" height="40" class="me-2">
+        CargoEase
+      </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -32,7 +35,9 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'clientes_list' %}">Clientes</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'conductores_list' %}">Conductores</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'vehiculos_list' %}">Vehículos</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'neumaticos_list' %}">Neumaticos</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'neumaticos_list' %}">Neumáticos</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'soporte_list' %}">Soporte</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'cerrar_sesion' %}">Cerrar Sesion</a></li>
         </ul>
       </div>
     </div>

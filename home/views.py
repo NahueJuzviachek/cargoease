@@ -8,5 +8,5 @@ def home(request):
 
 
 def reportes(request):
-    return render(request, "home/reportes.html")
+    return render(request, "home/soporte.html")
 
