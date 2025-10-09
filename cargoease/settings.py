@@ -44,8 +44,8 @@ INSTALLED_APPS = [
     'ubicaciones',
     'vehiculos',
     'conductores',
-    'viajes',
-    'aceite',
+    "viajes.apps.ViajesConfig",
+    "aceite.apps.AceiteConfig",
     'soporte',
 ]
 
@@ -139,3 +139,17 @@ ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjA4ZTE4MDBmN
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Configuración para enviar correos con Gmail
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# Tus datos
+EMAIL_HOST_USER = "cargoesae123@gmail.com"          # correo de Gmail
+EMAIL_HOST_PASSWORD = "abcd efgh ijkl mnop"      # contraseña de aplicación (sin espacios)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# A dónde se envían los informes de soporte
+SUPPORT_INBOX = "cargoease123@gmail.com"

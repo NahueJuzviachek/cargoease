@@ -1,5 +1,5 @@
 from decimal import Decimal
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Sum
 from django.db.models.signals import post_save, post_delete
@@ -33,7 +33,7 @@ class Viaje(models.Model):
         null=True, blank=True
     )
 
-    fecha = models.DateField(db_index=True, help_text="Fecha del viaje.")
+    fecha = models.DateTimeField(db_index=True, help_text="Fecha y hora del viaje.")
 
     # Ubicaciones
     salida = models.ForeignKey(

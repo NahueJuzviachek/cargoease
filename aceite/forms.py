@@ -1,24 +1,16 @@
 from django import forms
-from .models import AceiteMotor, AceiteCaja
+from .models import TipoAceite
 
-class AceiteMotorForm(forms.ModelForm):
-    class Meta:
-        model = AceiteMotor
-        fields = ["fecha", "km", "filtros"]
-        widgets = {
-            "fecha": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-            "km": forms.NumberInput(attrs={"step": "0.01", "min": "0", "class": "form-control"}),
-            "filtros": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        }
-        labels = {"fecha": "Fecha", "km": "Odómetro (opcional)", "filtros": "Cambiar filtros"}
+class CambioAceiteForm(forms.Form):
+    filtros_cambiados = forms.BooleanField(
+        required=False,
+        label="¿Cambiar filtros?",
+        help_text="Solo aplica al aceite de motor.",
+    )
 
-
-class AceiteCajaForm(forms.ModelForm):
-    class Meta:
-        model = AceiteCaja
-        fields = ["fecha", "km"]
-        widgets = {
-            "fecha": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-            "km": forms.NumberInput(attrs={"step": "0.01", "min": "0", "class": "form-control"}),
-        }
-        labels = {"fecha": "Fecha", "km": "Odómetro (opcional)"}
+    def __init__(self, *args, **kwargs):
+        self.aceite = kwargs.pop("aceite", None)
+        super().__init__(*args, **kwargs)
+        # Si no es motor, ocultamos el campo
+        if not self.aceite or self.aceite.tipo != TipoAceite.MOTOR:
+            self.fields["filtros_cambiados"].widget = forms.HiddenInput()

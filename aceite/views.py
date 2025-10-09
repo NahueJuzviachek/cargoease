@@ -1,81 +1,126 @@
-# aceite/views.py
 from decimal import Decimal
-from django.db.models import Sum
-from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
-from django.views.decorators.http import require_POST
+from django.db import transaction
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.template.loader import select_template
+from django.http import HttpResponse
 from vehiculos.models import Vehiculo
 from .models import Aceite, TipoAceite
-from .services import cambiar_aceite, recalc_km_aceite_para_vehiculo, MAX_MOTOR, MAX_CAJA
+from .forms import CambioAceiteForm
+from .services import registrar_cambio_aceite, recalc_km_aceite_para_vehiculo
 
 
-def confirmar_cambio_motor(request, vehiculo_pk: int):
-    vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_pk)
-    aceite = _ensure_aceite(vehiculo, TipoAceite.MOTOR)
-    return render(request, "aceite/confirm.html", {"vehiculo": vehiculo, "aceite": aceite})
-
-def confirmar_cambio_caja(request, vehiculo_pk: int):
-    vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_pk)
-    aceite = _ensure_aceite(vehiculo, TipoAceite.CAJA)
-    return render(request, "aceite/confirm.html", {"vehiculo": vehiculo, "aceite": aceite})
-
-def _suma_km_viajes(vehiculo):
-    from viajes.models import Viaje
-    total = Viaje.objects.filter(vehiculo=vehiculo).aggregate(s=Sum("distancia"))["s"]
-    return Decimal(total or 0)
-
-def _ensure_aceite(vehiculo, tipo: str) -> Aceite:
-    aceite = Aceite.objects.filter(vehiculo=vehiculo, tipo=tipo).first()
-    if not aceite:
-        vida_default = MAX_MOTOR if tipo == TipoAceite.MOTOR else MAX_CAJA
-        aceite = Aceite.objects.create(
-            vehiculo=vehiculo,
-            tipo=tipo,
-            km_acumulados=0,
-            vida_util_km=vida_default,
-            # fecha_instalacion se setea por default=timezone.now
-        )
-    return aceite
+# ------------------------------
+# DASHBOARD PRINCIPAL DE ACEITES
+# ------------------------------
+def _to_float(x):
+    if x is None:
+        return 0.0
+    if isinstance(x, Decimal):
+        return float(x)
+    try:
+        return float(x)
+    except Exception:
+        return 0.0
+    
 
 def aceite_dashboard(request, vehiculo_pk: int):
     vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_pk)
-    motor = _ensure_aceite(vehiculo, TipoAceite.MOTOR)
-    caja = _ensure_aceite(vehiculo, TipoAceite.CAJA)
-
+    # Recalcular para evitar datos viejos
     recalc_km_aceite_para_vehiculo(vehiculo)
-    motor.refresh_from_db(); caja.refresh_from_db()
 
-    km_motor = float(motor.km_acumulados or 0)
-    km_caja  = float(caja.km_acumulados or 0)
-    max_motor = float(motor.vida_util_km or MAX_MOTOR)
-    max_caja  = float(caja.vida_util_km or MAX_CAJA)
+    # Traemos ambos aceites
+    aceites = {a.tipo: a for a in vehiculo.aceites.all()}
+    motor = aceites.get(TipoAceite.MOTOR)
+    caja = aceites.get(TipoAceite.CAJA)
 
-    pct_motor_cap = min(100.0, (km_motor / max_motor) * 100.0) if max_motor else 0.0
-    pct_caja_cap  = min(100.0, (km_caja  / max_caja)  * 100.0) if max_caja  else 0.0
+    # Valores que el template espera
+    km_motor = _to_float(getattr(motor, "km_acumulados", 0))
+    km_caja = _to_float(getattr(caja, "km_acumulados", 0))
+    max_motor = int(getattr(motor, "vida_util_km", 30000)) if motor else 30000
+    max_caja = int(getattr(caja, "vida_util_km", 100000)) if caja else 100000
 
-    ctx = {
+    context = {
         "vehiculo": vehiculo,
-        "motor": motor, "caja": caja,
-        "km_motor": motor.km_acumulados, "km_caja": caja.km_acumulados,
-        "max_motor": int(max_motor), "max_caja": int(max_caja),
-        "pct_motor_cap": pct_motor_cap, "pct_caja_cap": pct_caja_cap,
+        "motor": motor,
+        "caja": caja,
+        "km_motor": km_motor,
+        "km_caja": km_caja,
+        "max_motor": max_motor,
+        "max_caja": max_caja,
     }
-    return render(request, "aceite/aceite_panel.html", ctx)
 
-@require_POST
+    template = select_template([
+        "aceite/aceite_panel.html",  # tu nombre
+        "aceite/panel.html",         # fallback
+        "vehiculos/aceite_panel.html",
+    ])
+    return HttpResponse(template.render(context, request))
+
+# ------------------------------
+# CONFIRMAR CAMBIO MOTOR / CAJA
+# ------------------------------
+def confirmar_cambio_motor(request, vehiculo_pk: int):
+    return _confirmar_cambio(request, vehiculo_pk, TipoAceite.MOTOR)
+
+
+def confirmar_cambio_caja(request, vehiculo_pk: int):
+    return _confirmar_cambio(request, vehiculo_pk, TipoAceite.CAJA)
+
+
+# ------------------------------
+# FUNCIONES INTERNAS
+# ------------------------------
+def _confirmar_cambio(request, vehiculo_pk: int, tipo: str):
+    vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_pk)
+    try:
+        aceite = vehiculo.aceites.get(tipo=tipo)
+    except Aceite.DoesNotExist:
+        raise Http404("No existe registro de aceite para este tipo.")
+
+    if request.method == "POST":
+        form = CambioAceiteForm(request.POST, aceite=aceite)
+        if form.is_valid():
+            with transaction.atomic():
+                registrar_cambio_aceite(
+                    aceite,
+                    filtros_cambiados=form.cleaned_data.get("filtros_cambiados", False),
+                )
+            messages.success(
+                request,
+                f"Se registró el cambio de aceite de {aceite.get_tipo_display()} "
+                f"en {vehiculo}. Ciclo #{aceite.ciclos} iniciado.",
+            )
+            return redirect(reverse("vehiculo_aceite", kwargs={"vehiculo_pk": vehiculo.pk}))
+    else:
+        form = CambioAceiteForm(aceite=aceite)
+
+    template = select_template([
+        "aceite/confirm.html",        # <-- tu nombre
+        "aceite/confirmar.html",
+        "vehiculos/aceite_confirm.html",
+    ])
+    ctx = {"vehiculo": vehiculo, "aceite": aceite, "form": form}
+    return HttpResponse(template.render(ctx, request))
+
+# ------------------------------
+# BOTONES 'CAMBIAR ACEITE'
+# ------------------------------
 def cambiar_aceite_motor(request, vehiculo_pk: int):
-    vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_pk)
-    motor = _ensure_aceite(vehiculo, TipoAceite.MOTOR)
-    filtros = request.POST.get("filtros_cambiados") == "on"
-    cambiar_aceite(motor, filtros_cambiados=filtros)
-    messages.success(request, "Cambio de aceite de motor registrado.")
-    return redirect("vehiculo_aceite", vehiculo_pk=vehiculo.pk)
+    """Redirige a la confirmación del cambio de aceite de motor."""
+    return _confirmar_cambio(request, vehiculo_pk, TipoAceite.MOTOR)
 
-@require_POST
+
 def cambiar_aceite_caja(request, vehiculo_pk: int):
-    vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_pk)
-    caja = _ensure_aceite(vehiculo, TipoAceite.CAJA)
-    cambiar_aceite(caja, filtros_cambiados=False)
-    messages.success(request, "Cambio de aceite de caja registrado.")
-    return redirect("vehiculo_aceite", vehiculo_pk=vehiculo.pk)
+    """Redirige a la confirmación del cambio de aceite de caja."""
+    return _confirmar_cambio(request, vehiculo_pk, TipoAceite.CAJA)
 
+def aceite_cambiar(request, vehiculo_pk: int, tipo: str):
+    tipo = (tipo or "").lower()
+    if tipo not in ("motor", "caja"):
+        raise Http404("Tipo de aceite inválido.")
+    # Reusa la lógica ya implementada
+    return _confirmar_cambio(request, vehiculo_pk, tipo)

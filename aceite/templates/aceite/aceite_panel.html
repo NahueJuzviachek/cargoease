@@ -67,7 +67,7 @@
                         {% with ultimo=caja.historial.first %}
                         {% if ultimo %}
                         <small class="text-muted">
-                            Último cambio: {{ ultimo.fecha|date:"d/m/Y" }}
+                            Último cambio: {{ ultimo.fecha|date:"d/m/Y H:i" }}
                         </small>
                         {% else %}
                         <small class="text-muted">Sin cambios registrados</small>

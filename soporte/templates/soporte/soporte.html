@@ -1,28 +1,63 @@
 {% extends "home/base.html" %}
-
 {% load static %}
 
 {% block title %}Inicio · CargoEase{% endblock %}
 
 {% block content %}
-  <div class="row">
-    <div class="col-12 col-lg-6">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title mb-3">Panel de Soporte</h5>
-          <div>
-            <p>
-              <form action="" method="POST" style="text-align: center;">
-                <!-- clave de seguridad para evitar el error  -->
-                {% csrf_token %} 
-                <table style="margin:20px auto;">{{miSoporte.as_table}}</table>
-                <input type="submit" value="Enviar">
-              </form>
-            </p>
-          </div>
+<div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title mb-3 text-center">Panel de Soporte</h4>
+        <p class="text-muted mb-4 text-center">Informanos tu problema</p>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">{{ message }}
         </div>
+        {% endfor %}
+        {% endif %}
+
+        <form action="" method="POST" novalidate>
+          {% csrf_token %}
+
+          {% if miSoporte.non_field_errors %}
+          <div class="alert alert-danger">
+            {{ miSoporte.non_field_errors }}
+          </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label" for="{{ miSoporte.nombre.id_for_label }}">Nombre</label>
+            {{ miSoporte.nombre }}
+            {% if miSoporte.nombre.errors %}
+            <div class="invalid-feedback d-block">{{ miSoporte.nombre.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="{{ miSoporte.email.id_for_label }}">Correo</label>
+            {{ miSoporte.email }}
+            {% if miSoporte.email.errors %}
+            <div class="invalid-feedback d-block">{{ miSoporte.email.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="{{ miSoporte.mensaje.id_for_label }}">Mensaje</label>
+            {{ miSoporte.mensaje }}
+            {% if miSoporte.mensaje.errors %}
+            <div class="invalid-feedback d-block">{{ miSoporte.mensaje.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-success">Enviar</button>
+          </div>
+        </form>
+
       </div>
     </div>
   </div>
-
+</div>
 {% endblock %}

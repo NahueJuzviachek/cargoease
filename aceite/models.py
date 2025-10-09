@@ -20,11 +20,14 @@ class Aceite(models.Model):
     # La vida útil la fijamos por tipo (Motor 30000, Caja 100000) al crear/cambiar
     vida_util_km = models.PositiveIntegerField(default=30000)
     ciclos = models.PositiveIntegerField(default=0)
-    fecha_instalacion = models.DateField(default=timezone.now)
+    fecha_instalacion = models.DateTimeField(default=timezone.now)
 
     class Meta:
         db_table = "tablaAceite"
         ordering = ["vehiculo_id", "tipo", "-fecha_instalacion"]
+        constraints = [
+            models.UniqueConstraint(fields=["vehiculo", "tipo"], name="uniq_aceite_vehiculo_tipo")
+        ]
 
     def __str__(self):
         return f"{self.vehiculo} – {self.get_tipo_display()} (ciclo {self.ciclos})"

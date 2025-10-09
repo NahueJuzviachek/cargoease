@@ -1,7 +1,8 @@
-from django.contrib import admin
 from django.urls import path
-from . import views
+from .views import soporte_view  
+
+app_name = "soporte"
 
 urlpatterns = [
-    path('', views.soporte, name='soporte'),
+    path("", soporte_view, name="form"),  
 ]

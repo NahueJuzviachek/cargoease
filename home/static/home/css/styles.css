@@ -1,6 +1,6 @@
 /* Navbar */
 .navbar-ce {
-  background-color: #f5e49a;
+  background-color: #ffe5be;
   --bs-navbar-color: #865b38;
   --bs-navbar-hover-color: #865b38;
   --bs-navbar-active-color: #865b38;
@@ -10,10 +10,9 @@
 }
 
 .footer-ce {
-  background: #f5e49a;
+  background: #ffe5be;
   /* mismo fondo que la navbar */
   color: #865b38;
   /* marrón clarito de la navbar */
   border-top: 1px solid rgba(0, 0, 0, .06);
 }
-
