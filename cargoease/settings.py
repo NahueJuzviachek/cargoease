@@ -81,9 +81,9 @@ STATIC_URL = 'static/'
 
 WSGI_APPLICATION = 'cargoease.wsgi.application'
 
-LLOGIN_URL = "/login/"          
-LOGIN_REDIRECT_URL = "/"        #donde vas tras loguearse 
-LOGOUT_REDIRECT_URL = "/login/" #done vas tras cerrar sesion 
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
 APPEND_SLASH = True   
 
 # Database
@@ -148,8 +148,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 # Tus datos
-EMAIL_HOST_USER = "cargoesae123@gmail.com"          # correo de Gmail
-EMAIL_HOST_PASSWORD = "abcd efgh ijkl mnop"      # contraseña de aplicación (sin espacios)
+EMAIL_HOST_USER = "cargoease123@gmail.com"          # correo de Gmail
+EMAIL_HOST_PASSWORD = "eafkmulgivjuromm"      # contraseña de aplicación (sin espacios)
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # A dónde se envían los informes de soporte
