@@ -1,59 +1,83 @@
-# neumaticos/signals.py
-from django.apps import apps
-from django.db import transaction
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
+from django.utils import timezone
+from django.db import transaction
 
 from vehiculos.models import Vehiculo
-from .models import Neumatico, TipoNeumatico, EstadoNeumatico
-from .utils import pos_to_nro
-from .constants import POSICIONES_POR_EJE, KM_UMBRAL_USADO
-from .services import acumular_km_vehiculo
+from .models import Neumatico, EstadoNeumatico, TipoNeumatico, AlmacenNeumaticos
 
-Viaje = apps.get_model("viajes", "Viaje")
+# Fallback si constants no está disponible
+try:
+    from .constants import POSICIONES_POR_EJE
+except Exception:
+    POSICIONES_POR_EJE = 2
 
-def _get_or_create_tipo(descripcion: str):
-    return TipoNeumatico.objects.get_or_create(descripcion__iexact=descripcion,
-                                               defaults={"descripcion": descripcion})[0]
 
-def _get_or_create_estado(descripcion: str):
-    return EstadoNeumatico.objects.get_or_create(descripcion__iexact=descripcion,
-                                                 defaults={"descripcion": descripcion})[0]
+def _get_estado(descripcion: str):
+    estado, _ = EstadoNeumatico.objects.get_or_create(descripcion=descripcion)
+    return estado
+
+
+def _get_tipo_default():
+    try:
+        tipo, _ = TipoNeumatico.objects.get_or_create(descripcion="EN USO")
+        return tipo
+    except Exception:
+        return None
+
 
 @receiver(post_save, sender=Vehiculo)
-def crear_neumaticos_por_ejes(sender, instance: Vehiculo, created: bool, **kwargs):
+def crear_neumaticos_base_al_crear_vehiculo(sender, instance: Vehiculo, created, **kwargs):
+    """
+    Al crear un vehículo nuevo, si no tiene neumáticos asociados, crear posiciones base
+    YA MONTADAS en el vehículo, con estado 'Montado' y nroNeumatico 1..(ejes*POSICIONES_POR_EJE).
+    """
     if not created:
         return
-    tipo_nuevo = _get_or_create_tipo("Nuevo")
-    estado_montado = _get_or_create_estado("Montado")
+
+    if Neumatico.objects.filter(vehiculo=instance).exists():
+        return
+
+    try:
+        ejes = int(getattr(instance, "ejes", 2) or 2)
+    except Exception:
+        ejes = 2
+
+    total_posiciones = max(1, ejes * POSICIONES_POR_EJE)
+    estado_montado = _get_estado("Montado")
+    tipo_default = _get_tipo_default()
+
+    objs = []
+    for i in range(1, total_posiciones + 1):
+        objs.append(
+            Neumatico(
+                vehiculo=instance,
+                estado=estado_montado,
+                tipo=tipo_default,
+                nroNeumatico=i,
+                montado=True,         # 👈 YA montados
+                km=0,
+                activo=True,
+                eliminado=False,
+                fecha_baja=None,
+            )
+        )
 
     with transaction.atomic():
-        for eje in range(1, instance.ejes + 1):
-            for pos in range(1, POSICIONES_POR_EJE + 1):
-                nro = pos_to_nro(eje, pos)
-                if Neumatico.objects.filter(vehiculo=instance, nroNeumatico=nro, montado=True).exists():
-                    continue
-                Neumatico.objects.create(
-                    vehiculo=instance, estado=estado_montado, tipo=tipo_nuevo,
-                    nroNeumatico=nro, montado=True, km=0
-                )
+        creados = Neumatico.objects.bulk_create(objs, ignore_conflicts=True)
+        # Limpieza defensiva: por si algún flujo externo generara registro en almacén
+        pks = [n.pk for n in creados if n.pk]
+        if pks:
+            AlmacenNeumaticos.objects.filter(idNeumatico_id__in=pks).delete()
 
-@receiver(post_save, sender=Viaje)
-def sumar_km_por_viaje_nuevo(sender, instance: Viaje, created: bool, **kwargs):
-    """Suma la distancia del último viaje creado a todos los neumáticos montados del vehículo."""
-    if not created:
-        return
-    if instance.vehiculo_id and instance.distancia:
-        acumular_km_vehiculo(instance.vehiculo_id, instance.distancia)
 
-@receiver(pre_save, sender=Neumatico)
-def validar_condicion_por_km(sender, instance: Neumatico, **kwargs):
-    """Si el neumático llega al umbral de km, pasa a condición 'Usado' automáticamente."""
-    if instance.km is None:
-        return
-    try:
-        km = int(instance.km)
-    except Exception:
-        return
-    if km >= KM_UMBRAL_USADO:
-        instance.tipo = _get_or_create_tipo("Usado")
+@receiver(pre_delete, sender=Vehiculo)
+def soft_delete_neumaticos_on_vehicle_delete(sender, instance: Vehiculo, **kwargs):
+    """
+    Antes de borrar un Vehículo, marcamos 'ELIMINADO' todos sus neumáticos.
+    """
+    estado_elim = _get_estado("ELIMINADO")
+    now = timezone.now()
+    Neumatico.objects.filter(vehiculo=instance).update(
+        estado=estado_elim, activo=False, eliminado=True, fecha_baja=now
+    )

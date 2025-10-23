@@ -1,6 +1,7 @@
 # neumaticos/models.py
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.utils import timezone
 from vehiculos.models import Vehiculo
 
 
@@ -32,12 +33,38 @@ class TipoNeumatico(models.Model):
         return self.descripcion
 
 
+class NeumaticoQuerySet(models.QuerySet):
+    def vigentes(self):
+        qs = self
+        # filtrar por flags si existen
+        if "activo" in [f.name for f in Neumatico._meta.fields]:
+            qs = qs.filter(activo=True)
+        if "eliminado" in [f.name for f in Neumatico._meta.fields]:
+            qs = qs.filter(eliminado=False)
+        if "fecha_baja" in [f.name for f in Neumatico._meta.fields]:
+            qs = qs.filter(fecha_baja__isnull=True)
+        # además, evitar estado ELIMINADO si alguien lo filtrara solo por estado
+        try:
+            qs = qs.exclude(estado__descripcion__iexact="ELIMINADO")
+        except Exception:
+            pass
+        return qs
+
+
+class NeumaticoManager(models.Manager):
+    def get_queryset(self):
+        return NeumaticoQuerySet(self.model, using=self._db)
+
+    def vigentes(self):
+        return self.get_queryset().vigentes()
+
+
 class Neumatico(models.Model):
     idNeumatico = models.AutoField(primary_key=True, db_column="idNeumatico")
 
     vehiculo = models.ForeignKey(
         Vehiculo,
-        on_delete=models.SET_NULL,                 
+        on_delete=models.SET_NULL,                 # mantenemos tu comportamiento actual
         related_name="neumaticos",
         db_column="idVehiculo",
         verbose_name="Vehículo",
@@ -47,7 +74,7 @@ class Neumatico(models.Model):
 
     estado = models.ForeignKey(
         EstadoNeumatico,
-        on_delete=models.PROTECT,                  
+        on_delete=models.PROTECT,
         db_column="idEstadoNeumatico",
         verbose_name="Estado",
     )
@@ -73,8 +100,15 @@ class Neumatico(models.Model):
         "Kilómetros recorridos",
         default=0,
         validators=[MinValueValidator(0)],
-        help_text="Cantidad de km acumulados por el neumático"
+        help_text="Cantidad de km acumulados por el neumático",
     )
+
+    # --- Soft delete flags (nuevos) ---
+    activo = models.BooleanField(default=True)
+    eliminado = models.BooleanField(default=False)
+    fecha_baja = models.DateTimeField(null=True, blank=True)
+
+    objects = NeumaticoManager()
 
     class Meta:
         db_table = "tablaNeumaticos"
@@ -94,6 +128,29 @@ class Neumatico(models.Model):
             return f"Neumático #{self.nroNeumatico} - {self.vehiculo} ({tipo}, {self.km} km)"
         return f"Neumático #{self.nroNeumatico} (En almacén) - {tipo}, {self.km} km"
 
+    # -------- Soft delete helpers --------
+    def soft_delete(self, commit=True):
+        estado_elim, _ = EstadoNeumatico.objects.get_or_create(descripcion="ELIMINADO")
+        self.estado = estado_elim
+        self.activo = False
+        self.eliminado = True
+        self.fecha_baja = timezone.now()
+        if commit:
+            self.save(update_fields=["estado", "activo", "eliminado", "fecha_baja"])
+
+    def restore(self, estado_activo_desc="EN USO", commit=True):
+        estado_activo, _ = EstadoNeumatico.objects.get_or_create(descripcion=estado_activo_desc)
+        self.estado = estado_activo
+        self.activo = True
+        self.eliminado = False
+        self.fecha_baja = None
+        if commit:
+            self.save(update_fields=["estado", "activo", "eliminado", "fecha_baja"])
+
+    # opcional: si querés forzar que delete() sea soft
+    def delete(self, using=None, keep_parents=False):
+        self.soft_delete(commit=True)
+
 
 class AlmacenNeumaticos(models.Model):
     idNeumatico = models.OneToOneField(
@@ -104,7 +161,6 @@ class AlmacenNeumaticos(models.Model):
         related_name="almacen",
         verbose_name="Neumático",
     )
-
     fecha_ingreso = models.DateField(auto_now_add=True, verbose_name="Fecha de ingreso")
 
     class Meta:

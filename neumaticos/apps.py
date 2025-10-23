@@ -6,5 +6,5 @@ class NeumaticosConfig(AppConfig):
     name = "neumaticos"
 
     def ready(self):
-        # Registra receivers (incluye el que escucha Viaje post_save)
+        # Registra receivers
         from . import signals  # noqa: F401

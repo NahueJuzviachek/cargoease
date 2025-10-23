@@ -8,16 +8,27 @@ from .models import GastoExtra, Viaje
 
 
 # ---------------------------
-# Utilidades (gastos extra)
+# Utilidades locales
 # ---------------------------
 def _sumar_gastos_extra(viaje: Viaje) -> Decimal:
     total = viaje.gastos_extra.aggregate(s=Sum("monto"))["s"] or Decimal("0")
     return total
 
+def _to_int_km(val) -> int:
+    """Convierte Decimal/float/int/str a entero de km (seguro)."""
+    if val is None:
+        return 0
+    try:
+        if isinstance(val, Decimal):
+            return int(val)
+        return int(float(val))
+    except Exception:
+        return 0
+
 
 # ---------------------------------------
 # Aceite: recalcular km en save / delete
-# (se mantiene igual que tenías)
+# (igual que tenías)
 # ---------------------------------------
 @receiver(post_save, sender=Viaje)
 def viaje_post_save_recalc_aceite(sender, instance: Viaje, **kwargs):
@@ -43,7 +54,7 @@ def viaje_post_delete_recalc_aceite(sender, instance: Viaje, **kwargs):
 
 # ----------------------------------------------------
 # GastoExtra: mantener totales/ganancia en save/delete
-# (se mantiene igual que tenías)
+# (igual que tenías)
 # ----------------------------------------------------
 @receiver(post_save, sender=GastoExtra)
 def gastoextra_post_save(sender, instance: GastoExtra, **kwargs):
@@ -69,9 +80,10 @@ def gastoextra_post_delete(sender, instance: GastoExtra, **kwargs):
 
 
 # =================================================================
-# NUEVO: Sincronización de KM en NEUMÁTICOS al EDITAR / ELIMINAR
-# - La CREACIÓN del viaje ya la maneja neumaticos/signals.py (created=True).
-#   (sumar_km_por_viaje_nuevo)  :contentReference[oaicite:2]{index=2}
+# KM en NEUMÁTICOS: crear / editar / eliminar
+#  - Usa el campo Viaje.distancia para los km
+#  - En edición aplica delta (nuevo - anterior) y contempla cambio de vehículo
+#  - En borrado resta los km del viaje
 # =================================================================
 
 @receiver(pre_save, sender=Viaje)
@@ -83,7 +95,7 @@ def viaje_pre_save_cache_old(sender, instance: Viaje, **kwargs):
     if not instance.pk:
         # Es un create: no hay valores anteriores
         instance._old_vehiculo_id = None
-        instance._old_distancia = None
+        instance._old_distancia = 0
         return
 
     old = (
@@ -92,52 +104,74 @@ def viaje_pre_save_cache_old(sender, instance: Viaje, **kwargs):
         .first()
     ) or {}
     instance._old_vehiculo_id = old.get("vehiculo_id")
-    instance._old_distancia = old.get("distancia") or 0
+    instance._old_distancia = _to_int_km(old.get("distancia") or 0)
 
 
 @receiver(post_save, sender=Viaje)
 def viaje_post_save_sync_neumaticos(sender, instance: Viaje, created: bool, **kwargs):
     """
-    EDITAR viaje:
-      - Si NO cambió de vehículo: aplica delta = nueva_distancia - distancia_anterior.
-      - Si SÍ cambió de vehículo: resta al vehículo anterior y suma al vehículo nuevo.
-    La creación ya está cubierta en neumaticos/signals.py (created=True).
+    Sincroniza kilómetros en neumáticos del vehículo:
+      - CREATE: suma 'distancia' al vehículo del viaje.
+      - UPDATE (mismo vehículo): aplica delta = distancia_nueva - distancia_anterior.
+      - UPDATE (cambió de vehículo): resta al vehículo anterior y suma al nuevo.
     """
-    if created:
-        return  # creación: ya suma km a neumáticos en neumaticos/signals.py
-
     try:
-        from neumaticos.services import acumular_km_vehiculo  # suma/resta y clamp >= 0  :contentReference[oaicite:3]{index=3}
-
-        old_vid = getattr(instance, "_old_vehiculo_id", None)
-        old_km = getattr(instance, "_old_distancia", 0) or 0
-        new_vid = instance.vehiculo_id
-        new_km = instance.distancia or 0
-
-        if old_vid == new_vid:
-            delta = (new_km or 0) - (old_km or 0)
-            if delta:
-                acumular_km_vehiculo(new_vid, delta)
-        else:
-            # Cambió de vehículo: sacar todo al viejo, sumar todo al nuevo
-            if old_vid:
-                acumular_km_vehiculo(old_vid, -(old_km or 0))
-            if new_vid:
-                acumular_km_vehiculo(new_vid, (new_km or 0))
-
+        from neumaticos.services import acumular_km_vehiculo  # suma/resta y clamp >= 0
     except Exception as e:
-        print("[viajes.signals] Error sync neumáticos post_save:", e)
+        print("[viajes.signals] Error import acumular_km_vehiculo:", e)
+        return
+
+    new_vid = instance.vehiculo_id
+    new_km = _to_int_km(getattr(instance, "distancia", 0))
+
+    if created:
+        if new_vid and new_km:
+            try:
+                acumular_km_vehiculo(new_vid, new_km)
+            except Exception as e:
+                print("[viajes.signals] Error sumar km en create:", e)
+        return
+
+    # UPDATE
+    old_vid = getattr(instance, "_old_vehiculo_id", None)
+    old_km = _to_int_km(getattr(instance, "_old_distancia", 0))
+
+    if old_vid == new_vid:
+        delta = new_km - old_km
+        if delta:
+            try:
+                acumular_km_vehiculo(new_vid, delta)
+            except Exception as e:
+                print("[viajes.signals] Error aplicar delta km en update:", e)
+    else:
+        # Cambió de vehículo: sacar todo al viejo, sumar todo al nuevo
+        if old_vid and old_km:
+            try:
+                acumular_km_vehiculo(old_vid, -old_km)
+            except Exception as e:
+                print("[viajes.signals] Error restar km al viejo en update:", e)
+        if new_vid and new_km:
+            try:
+                acumular_km_vehiculo(new_vid, new_km)
+            except Exception as e:
+                print("[viajes.signals] Error sumar km al nuevo en update:", e)
 
 
 @receiver(post_delete, sender=Viaje)
 def viaje_post_delete_sync_neumaticos(sender, instance: Viaje, **kwargs):
     """
-    ELIMINAR viaje:
-      - Resta su distancia a los neumáticos del vehículo al que pertenecía.
+    ELIMINAR viaje: resta su distancia a los neumáticos del vehículo al que pertenecía.
     """
     try:
-        from neumaticos.services import acumular_km_vehiculo  #  :contentReference[oaicite:4]{index=4}
-        if instance.vehiculo_id and instance.distancia:
-            acumular_km_vehiculo(instance.vehiculo_id, -(instance.distancia or 0))
+        from neumaticos.services import acumular_km_vehiculo
     except Exception as e:
-        print("[viajes.signals] Error sync neumáticos post_delete:", e)
+        print("[viajes.signals] Error import acumular_km_vehiculo (delete):", e)
+        return
+
+    vid = instance.vehiculo_id
+    km = _to_int_km(getattr(instance, "distancia", 0))
+    if vid and km:
+        try:
+            acumular_km_vehiculo(vid, -km)
+        except Exception as e:
+            print("[viajes.signals] Error restar km en delete:", e)

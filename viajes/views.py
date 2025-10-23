@@ -17,6 +17,30 @@ from vehiculos.models import Vehiculo
 from .mixins import ORSContextMixin
 from aceite.services import recalc_km_aceite_para_vehiculo
 
+# ✅ acumular km en neumáticos
+from neumaticos.services import acumular_km_vehiculo
+
+
+# -----------------------------
+# Helper robusto para leer km del viaje sin romper si cambia el nombre del campo
+# -----------------------------
+def _extraer_km(viaje) -> int:
+    """
+    Intenta leer los kilómetros del viaje desde atributos usuales.
+    Retorna 0 si no existe o es None.
+    """
+    for attr in ("km", "kilometros", "distancia_km"):
+        if hasattr(viaje, attr):
+            val = getattr(viaje, attr)
+            try:
+                return int(val or 0)
+            except Exception:
+                try:
+                    return int(float(val))
+                except Exception:
+                    return 0
+    return 0
+
 
 class ViajeListView(ORSContextMixin, ListView):
     model = Viaje
@@ -65,8 +89,22 @@ class VehiculoViajeCreateView(ORSContextMixin, CreateView):
         # Asociamos el viaje al vehículo del URL
         form.instance.vehiculo = self.vehiculo
         resp = super().form_valid(form)
-        # Recalcular km de aceite al confirmar la transacción
-        transaction.on_commit(lambda: recalc_km_aceite_para_vehiculo(self.vehiculo))
+
+        # ---- Recalcular aceite y acumular km en neumáticos al confirmar la transacción
+        km_viaje = _extraer_km(form.instance)
+
+        def _post_commit():
+            # aceite
+            recalc_km_aceite_para_vehiculo(self.vehiculo)
+            # neumáticos: sumamos los km del viaje al vehículo
+            if km_viaje:
+                try:
+                    acumular_km_vehiculo(self.vehiculo.id, km_viaje)
+                except Exception:
+                    # no rompemos el flujo de viajes si falla; podés loguear si usás logging
+                    pass
+
+        transaction.on_commit(_post_commit)
         return resp
 
     def get_context_data(self, **kwargs):
@@ -106,9 +144,28 @@ class VehiculoViajeUpdateView(ORSContextMixin, UpdateView):
     def form_valid(self, form):
         # Aseguramos la relación aunque el campo esté disabled
         form.instance.vehiculo = self.vehiculo
+
+        # km antes de guardar (para delta)
+        viaje_original = self.get_object()
+        km_antes = _extraer_km(viaje_original)
+
         resp = super().form_valid(form)
-        # Recalcular km de aceite al confirmar la transacción
-        transaction.on_commit(lambda: recalc_km_aceite_para_vehiculo(self.vehiculo))
+
+        # ---- Recalcular aceite y aplicar delta de km a neumáticos al confirmar transacción
+        km_despues = _extraer_km(form.instance)
+        delta = km_despues - km_antes
+
+        def _post_commit():
+            # aceite
+            recalc_km_aceite_para_vehiculo(self.vehiculo)
+            # neumáticos: aplicamos delta (puede ser negativo si bajaste los km)
+            if delta:
+                try:
+                    acumular_km_vehiculo(self.vehiculo.id, delta)
+                except Exception:
+                    pass
+
+        transaction.on_commit(_post_commit)
         return resp
 
     def get_context_data(self, **kwargs):
@@ -129,12 +186,24 @@ class VehiculoViajeDeleteView(ORSContextMixin, DeleteView):
         return Viaje.objects.filter(vehiculo_id=self.kwargs["vehiculo_pk"])
 
     def delete(self, request, *args, **kwargs):
-        # Guardamos vehiculo antes de borrar para recalcular luego
+        # Guardamos vehiculo y km antes de borrar para recalcular luego
         self.object = self.get_object()
         vehiculo = self.object.vehiculo
+        km_viaje = _extraer_km(self.object)
+
         resp = super().delete(request, *args, **kwargs)
-        # Recalcular km de aceite al confirmar la transacción de borrado
-        transaction.on_commit(lambda: recalc_km_aceite_para_vehiculo(vehiculo))
+
+        # ---- Recalcular aceite y restar km de neumáticos al confirmar transacción
+        def _post_commit():
+            recalc_km_aceite_para_vehiculo(vehiculo)
+            if km_viaje:
+                try:
+                    # restamos los km del viaje borrado
+                    acumular_km_vehiculo(vehiculo.id, -km_viaje)
+                except Exception:
+                    pass
+
+        transaction.on_commit(_post_commit)
         return resp
 
     def get_success_url(self):
