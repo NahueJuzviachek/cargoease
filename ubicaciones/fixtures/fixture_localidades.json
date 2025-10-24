@@ -9966,7 +9966,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 3",
+      "nombre": "Balvanera",
       "lat": -34.613843,
       "lng": -58.402651
     }
@@ -10020,7 +10020,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 7",
+      "nombre": "Parque Chacabuco",
       "lat": -34.636554,
       "lng": -58.451887
     }
@@ -10083,7 +10083,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 10",
+      "nombre": "Monte Castro",
       "lat": -34.627837,
       "lng": -58.502815
     }
@@ -11829,7 +11829,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 11",
+      "nombre": "Villa del Parque",
       "lat": -34.606105,
       "lng": -58.496844
     }
@@ -11928,7 +11928,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 15",
+      "nombre": "Chacarita",
       "lat": -34.591884,
       "lng": -58.462774
     }
@@ -12243,7 +12243,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 2",
+      "nombre": "Recoleta",
       "lat": -34.585789,
       "lng": -58.394904
     }
@@ -12288,7 +12288,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 8",
+      "nombre": "Villa Lugano",
       "lat": -34.674517,
       "lng": -58.461874
     }
@@ -12306,7 +12306,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 6",
+      "nombre": "Caballito",
       "lat": -34.616843,
       "lng": -58.443568
     }
@@ -12378,7 +12378,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 9",
+      "nombre": "Parque Avellaneda",
       "lat": -34.651746,
       "lng": -58.498997
     }
@@ -12468,7 +12468,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 5",
+      "nombre": "Almagro",
       "lat": -34.61737,
       "lng": -58.420572
     }
@@ -12504,7 +12504,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 12",
+      "nombre": "Saavedra",
       "lat": -34.566315,
       "lng": -58.490467
     }
@@ -12702,7 +12702,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 13",
+      "nombre": "Belgrano",
       "lat": -34.554179,
       "lng": -58.45396
     }
@@ -12711,7 +12711,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 1",
+      "nombre": "Puerto Madero",
       "lat": -34.606444,
       "lng": -58.371512
     }
@@ -17625,7 +17625,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 14",
+      "nombre": "Palermo",
       "lat": -34.573875,
       "lng": -58.422294
     }
@@ -17715,7 +17715,7 @@
     "model": "ubicaciones.localidad",
     "fields": {
       "provincia": 5,
-      "nombre": "Comuna 4",
+      "nombre": "Barracas",
       "lat": -34.642105,
       "lng": -58.38762
     }
