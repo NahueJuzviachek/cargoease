@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth.decorators import login_required
 from .views import gastos_list, gasto_extra_eliminar, ajax_localidad_coords
+from . import views
 
 urlpatterns = [
     # Gastos del viaje
@@ -9,4 +10,5 @@ urlpatterns = [
 
     # EndPoint para coordenadas (AJAX)
     path("ajax/localidad-coords/", login_required(ajax_localidad_coords), name="ajax_localidad_coords"),
+    path("ajax/cliente-ubicacion/", views.ajax_cliente_ubicacion, name="ajax_cliente_ubicacion"),
 ]

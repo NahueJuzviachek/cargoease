@@ -1,4 +1,3 @@
-# viajes/views.py
 from django.conf import settings
 from django.urls import reverse
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
@@ -9,37 +8,12 @@ from django.db import transaction  # para on_commit
 from django.contrib.auth.decorators import login_required 
 from django.http import JsonResponse, Http404  # ⬅️ AJAX coords
 from ubicaciones.models import Localidad       # ⬅️ AJAX coords
-
+from clientes.models import Cliente
 from .models import Viaje, GastoExtra
 from .forms import ViajeForm
 from .forms import GastoExtraForm  # formulario del gasto extra
 from vehiculos.models import Vehiculo
 from .mixins import ORSContextMixin
-from aceite.services import recalc_km_aceite_para_vehiculo
-
-# ✅ acumular km en neumáticos
-from neumaticos.services import acumular_km_vehiculo
-
-
-# -----------------------------
-# Helper robusto para leer km del viaje sin romper si cambia el nombre del campo
-# -----------------------------
-def _extraer_km(viaje) -> int:
-    """
-    Intenta leer los kilómetros del viaje desde atributos usuales.
-    Retorna 0 si no existe o es None.
-    """
-    for attr in ("km", "kilometros", "distancia_km"):
-        if hasattr(viaje, attr):
-            val = getattr(viaje, attr)
-            try:
-                return int(val or 0)
-            except Exception:
-                try:
-                    return int(float(val))
-                except Exception:
-                    return 0
-    return 0
 
 
 class ViajeListView(ORSContextMixin, ListView):
@@ -90,19 +64,14 @@ class VehiculoViajeCreateView(ORSContextMixin, CreateView):
         form.instance.vehiculo = self.vehiculo
         resp = super().form_valid(form)
 
-        # ---- Recalcular aceite y acumular km en neumáticos al confirmar la transacción
-        km_viaje = _extraer_km(form.instance)
+        vehiculo_id = self.vehiculo.id
 
         def _post_commit():
-            # aceite
-            recalc_km_aceite_para_vehiculo(self.vehiculo)
-            # neumáticos: sumamos los km del viaje al vehículo
-            if km_viaje:
-                try:
-                    acumular_km_vehiculo(self.vehiculo.id, km_viaje)
-                except Exception:
-                    # no rompemos el flujo de viajes si falla; podés loguear si usás logging
-                    pass
+            try:
+                from aceite.services import recalc_km_aceite_para_vehiculo
+                recalc_km_aceite_para_vehiculo(self.vehiculo) 
+            except Exception:
+                pass
 
         transaction.on_commit(_post_commit)
         return resp
@@ -144,26 +113,16 @@ class VehiculoViajeUpdateView(ORSContextMixin, UpdateView):
     def form_valid(self, form):
         # Aseguramos la relación aunque el campo esté disabled
         form.instance.vehiculo = self.vehiculo
-
-        # km antes de guardar (para delta)
-        viaje_original = self.get_object()
-        km_antes = _extraer_km(viaje_original)
-
         resp = super().form_valid(form)
 
-        # ---- Recalcular aceite y aplicar delta de km a neumáticos al confirmar transacción
-        km_despues = _extraer_km(form.instance)
-        delta = km_despues - km_antes
+        vehiculo_id = self.vehiculo.id
 
         def _post_commit():
-            # aceite
-            recalc_km_aceite_para_vehiculo(self.vehiculo)
-            # neumáticos: aplicamos delta (puede ser negativo si bajaste los km)
-            if delta:
-                try:
-                    acumular_km_vehiculo(self.vehiculo.id, delta)
-                except Exception:
-                    pass
+            try:
+                from aceite.services import recalc_km_aceite_para_vehiculo
+                recalc_km_aceite_para_vehiculo(vehiculo_id)
+            except Exception:
+                pass
 
         transaction.on_commit(_post_commit)
         return resp
@@ -186,22 +145,18 @@ class VehiculoViajeDeleteView(ORSContextMixin, DeleteView):
         return Viaje.objects.filter(vehiculo_id=self.kwargs["vehiculo_pk"])
 
     def delete(self, request, *args, **kwargs):
-        # Guardamos vehiculo y km antes de borrar para recalcular luego
+        # Guardamos vehiculo antes de borrar para recalcular luego
         self.object = self.get_object()
-        vehiculo = self.object.vehiculo
-        km_viaje = _extraer_km(self.object)
-
+        vehiculo_id = self.object.vehiculo_id
         resp = super().delete(request, *args, **kwargs)
 
-        # ---- Recalcular aceite y restar km de neumáticos al confirmar transacción
+        vehiculo = self.object.vehiculo
         def _post_commit():
-            recalc_km_aceite_para_vehiculo(vehiculo)
-            if km_viaje:
-                try:
-                    # restamos los km del viaje borrado
-                    acumular_km_vehiculo(vehiculo.id, -km_viaje)
-                except Exception:
-                    pass
+            try:
+                from aceite.services import recalc_km_aceite_para_vehiculo
+                recalc_km_aceite_para_vehiculo(vehiculo)  
+            except Exception:
+                pass
 
         transaction.on_commit(_post_commit)
         return resp
@@ -279,3 +234,24 @@ def ajax_localidad_coords(request):
         return JsonResponse({"error": "Localidad sin coordenadas."}, status=422)
 
     return JsonResponse({"lat": float(loc.lat), "lng": float(loc.lng)})
+
+def ajax_cliente_ubicacion(request):
+    """
+    /viajes/ajax/cliente-ubicacion/?cliente=<id>
+    Devuelve {pais_id, provincia_id, localidad_id} de la ubicación del cliente.
+    """
+    cli_id = request.GET.get("cliente")
+    if not cli_id:
+        return JsonResponse({"error": "Falta parámetro 'cliente'."}, status=400)
+
+    try:
+        c = Cliente.objects.select_related("pais", "provincia", "localidad").get(pk=cli_id)
+    except Cliente.DoesNotExist:
+        raise Http404("Cliente no encontrado")
+
+    data = {
+        "pais_id": c.pais_id,
+        "provincia_id": c.provincia_id,
+        "localidad_id": c.localidad_id,
+    }
+    return JsonResponse(data)

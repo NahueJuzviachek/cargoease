@@ -9,6 +9,13 @@
         {% if object %}Editar Viaje{% else %}Agregar Viaje{% endif %}
     </h2>
 
+    {# --- Nodo de configuración para JS (sin JS inline) --- #}
+    <div id="viajes-config" data-ors-key="{{ ORS_API_KEY|default:'' }}"
+        data-url-localidad-coords="{% url 'ajax_localidad_coords' %}"
+        data-url-cliente-ubic="{% url 'ajax_cliente_ubicacion' %}"
+        data-url-cargar-provincias="{% url 'ajax_cargar_provincias' %}"
+        data-url-cargar-localidades="{% url 'ajax_cargar_localidades' %}"></div>
+
     <form method="post" class="mt-4">
         {% csrf_token %}
         {{ form.non_field_errors }}
@@ -128,43 +135,8 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<!-- Variables para el JS -->
-<script>
-    window.ORS_API_KEY = "{{ ORS_API_KEY|default:'' }}";
-    window.URL_LOCALIDAD_COORDS = "{% url 'ajax_localidad_coords' %}";
-</script>
-
-<!-- Estilos y lógica -->
+<!-- Estilos y scripts -->
 <link rel="stylesheet" href="{% static 'viajes/viajes_map.css' %}">
+<script src="{% static 'viajes/viajes.js' %}?v=1"></script>
 <script src="{% static 'viajes/viajes_map.js' %}?v=20251001"></script>
-
-<!-- Selects dependientes (País/Provincia/Localidad) -->
-<script>
-    (function () {
-        const $ = (sel) => document.querySelector(sel);
-        const sPais = $("#id_salida_pais"), sProv = $("#id_salida_provincia"), sLoc = $("#id_salida_localidad");
-        const dPais = $("#id_destino_pais"), dProv = $("#id_destino_provincia"), dLoc = $("#id_destino_localidad");
-
-        function resetSelect(el, ph) {
-            if (!el) return; el.innerHTML = "";
-            const o = document.createElement("option"); o.value = ""; o.textContent = ph; el.appendChild(o);
-        }
-        async function cargarProvincias(paisId, selectProvincia) {
-            if (!paisId) return resetSelect(selectProvincia, "— Seleccionar provincia —");
-            const res = await fetch(`{% url 'ajax_cargar_provincias' %}?pais=${paisId}`); const data = await res.json();
-            resetSelect(selectProvincia, "— Seleccionar provincia —");
-            data.forEach(p => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.nombre; selectProvincia.appendChild(o); });
-        }
-        async function cargarLocalidades(provId, selectLocalidad) {
-            if (!provId) return resetSelect(selectLocalidad, "— Seleccionar localidad —");
-            const res = await fetch(`{% url 'ajax_cargar_localidades' %}?provincia=${provId}`); const data = await res.json();
-            resetSelect(selectLocalidad, "— Seleccionar localidad —");
-            data.forEach(l => { const o = document.createElement("option"); o.value = l.id; o.textContent = l.nombre; selectLocalidad.appendChild(o); });
-        }
-        sPais?.addEventListener("change", async function () { await cargarProvincias(this.value, sProv); resetSelect(sLoc, "— Seleccionar localidad —"); });
-        sProv?.addEventListener("change", async function () { await cargarLocalidades(this.value, sLoc); });
-        dPais?.addEventListener("change", async function () { await cargarProvincias(this.value, dProv); resetSelect(dLoc, "— Seleccionar localidad —"); });
-        dProv?.addEventListener("change", async function () { await cargarLocalidades(this.value, dLoc); });
-    })();
-</script>
 {% endblock %}
