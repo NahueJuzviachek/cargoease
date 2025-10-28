@@ -1,13 +1,16 @@
 // viajes/static/viajes/viajes.js
 (function () {
+    // Selector rápido por CSS
     const $ = (sel) => document.querySelector(sel);
 
+    // Obtener elemento de configuración con URLs y API keys
     const cfgEl = $("#viajes-config");
     if (!cfgEl) {
         console.error("[viajes.js] No se encontró #viajes-config en el DOM");
         return;
     }
 
+    // Configuración extraída de data-* attributes
     const CFG = {
         orsKey: cfgEl.dataset.orsKey || "",
         urlLocalidadCoords: cfgEl.dataset.urlLocalidadCoords || "",
@@ -16,16 +19,17 @@
         urlCargarLocalidades: cfgEl.dataset.urlCargarLocalidades || "",
     };
 
-    // Exponer globals si otros scripts las usan:
+    // Exponer variables globales para otros scripts que las requieran
     window.ORS_API_KEY = CFG.orsKey;
     window.URL_LOCALIDAD_COORDS = CFG.urlLocalidadCoords;
     window.URL_CLIENTE_UBIC = CFG.urlClienteUbic;
 
-    // Validaciones mínimas
+    // Advertencias si faltan configuraciones importantes
     if (!CFG.urlCargarProvincias) console.warn("[viajes.js] Falta data-url-cargar-provincias en #viajes-config");
     if (!CFG.urlCargarLocalidades) console.warn("[viajes.js] Falta data-url-cargar-localidades en #viajes-config");
     if (!CFG.urlClienteUbic) console.warn("[viajes.js] Falta data-url-cliente-ubic en #viajes-config");
 
+    // Referencias a los selects de salida, destino y cliente
     const sPais = $("#id_salida_pais"),
         sProv = $("#id_salida_provincia"),
         sLoc = $("#id_salida_localidad");
@@ -36,15 +40,17 @@
 
     const selCliente = $("#id_cliente");
 
+    // Función para limpiar un select y dejar un placeholder
     function resetSelect(el, placeholder) {
         if (!el) return;
         el.innerHTML = "";
-        const o = document.createElement("option");
-        o.value = "";
-        o.textContent = placeholder;
-        el.appendChild(o);
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = placeholder;
+        el.appendChild(option);
     }
 
+    // Función para cargar provincias según el país seleccionado
     async function cargarProvincias(paisId, selectProvincia, selectedId = null) {
         if (!paisId) {
             resetSelect(selectProvincia, "— Seleccionar provincia —");
@@ -75,6 +81,7 @@
         }
     }
 
+    // Función para cargar localidades según la provincia seleccionada
     async function cargarLocalidades(provId, selectLocalidad, selectedId = null) {
         if (!provId) {
             resetSelect(selectLocalidad, "— Seleccionar localidad —");
@@ -105,23 +112,25 @@
         }
     }
 
-    // Cascadas manuales (cuando el usuario cambia a mano)
+    // Eventos para la cascada de selects de salida
     sPais?.addEventListener("change", async function () {
-        await cargarProvincias(this.value, sProv, null);
+        await cargarProvincias(this.value, sProv);
         resetSelect(sLoc, "— Seleccionar localidad —");
     });
     sProv?.addEventListener("change", async function () {
-        await cargarLocalidades(this.value, sLoc, null);
+        await cargarLocalidades(this.value, sLoc);
     });
+
+    // Eventos para la cascada de selects de destino
     dPais?.addEventListener("change", async function () {
-        await cargarProvincias(this.value, dProv, null);
+        await cargarProvincias(this.value, dProv);
         resetSelect(dLoc, "— Seleccionar localidad —");
     });
     dProv?.addEventListener("change", async function () {
-        await cargarLocalidades(this.value, dLoc, null);
+        await cargarLocalidades(this.value, dLoc);
     });
 
-    // Autocompletar DESTINO con la ubicación del cliente
+    // Autocompletar destino según la ubicación del cliente seleccionado
     selCliente?.addEventListener("change", async function () {
         const id = this.value;
         if (!id) return;
@@ -133,29 +142,29 @@
                 console.warn("[viajes.js] Cliente sin ubicación o error:", res.status);
                 return;
             }
+
             const { pais_id, provincia_id, localidad_id } = await res.json();
             if (!pais_id || !provincia_id || !localidad_id) {
                 console.warn("[viajes.js] Ubicación incompleta en el cliente");
                 return;
             }
 
-            // 1) País
+            // Asignar país de destino
             dPais.value = String(pais_id);
 
-            // 2) Provincias (carga y preselección)
+            // Cargar provincias y preseleccionar
             await cargarProvincias(pais_id, dProv, provincia_id);
 
-            // 3) Localidades (carga y preselección)
+            // Cargar localidades y preseleccionar
             await cargarLocalidades(provincia_id, dLoc, localidad_id);
 
-            // ⚠️ No disparamos 'change' de dPais/dProv aquí para no sobreescribir
-            // lo ya seleccionado por nosotros.
+            // Nota: no se dispara 'change' de dPais/dProv para no sobrescribir manualmente seleccionado
         } catch (e) {
             console.error("[viajes.js] Error cargando ubicación del cliente:", e);
         }
     });
 
-    // Autocompletar si el form ya viene con cliente y destino vacío
+    // Si el form carga con cliente seleccionado y destino vacío, autocompletar
     document.addEventListener("DOMContentLoaded", () => {
         const destinoVacio = !dPais?.value && !dProv?.value && !dLoc?.value;
         if (selCliente?.value && destinoVacio) {

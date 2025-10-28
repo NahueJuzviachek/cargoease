@@ -6,6 +6,11 @@ from clientes.models import Cliente
 
 
 class ViajeForm(forms.ModelForm):
+    """
+    Formulario para crear/editar viajes.
+    Incluye campos de salida y destino con cascada país → provincia → localidad.
+    """
+
     # -------- Salida (cascada) --------
     salida_pais = forms.ModelChoiceField(
         label="Salida - País",
@@ -15,13 +20,13 @@ class ViajeForm(forms.ModelForm):
     )
     salida_provincia = forms.ModelChoiceField(
         label="Salida - Provincia",
-        queryset=Provincia.objects.none(),
+        queryset=Provincia.objects.none(),  # se llena dinámicamente
         required=True,
         widget=forms.Select(attrs={"class": "form-select", "id": "id_salida_provincia"})
     )
     salida_localidad = forms.ModelChoiceField(
         label="Salida - Localidad",
-        queryset=Localidad.objects.none(),
+        queryset=Localidad.objects.none(),  # se llena dinámicamente
         required=True,
         widget=forms.Select(attrs={"class": "form-select", "id": "id_salida_localidad"})
     )
@@ -35,20 +40,20 @@ class ViajeForm(forms.ModelForm):
     )
     destino_provincia = forms.ModelChoiceField(
         label="Destino - Provincia",
-        queryset=Provincia.objects.none(),
+        queryset=Provincia.objects.none(),  # se llena dinámicamente
         required=True,
         widget=forms.Select(attrs={"class": "form-select", "id": "id_destino_provincia"})
     )
     destino_localidad = forms.ModelChoiceField(
         label="Destino - Localidad",
-        queryset=Localidad.objects.none(),
+        queryset=Localidad.objects.none(),  # se llena dinámicamente
         required=True,
         widget=forms.Select(attrs={"class": "form-select", "id": "id_destino_localidad"})
     )
 
     class Meta:
         model = Viaje
-        # NOTA: 'gasto' ya NO se edita desde el form: se calcula con GastoExtra
+        # NOTA: 'gasto' ya no se edita desde el form: se calcula con GastoExtra
         fields = [
             "fecha",
             "cliente",
@@ -81,7 +86,7 @@ class ViajeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Orden de clientes
+        # Ordenar clientes alfabéticamente
         self.fields["cliente"].queryset = Cliente.objects.all().order_by("nombre")
 
         # --- Precarga en edición ---
@@ -108,13 +113,13 @@ class ViajeForm(forms.ModelForm):
                 self.initial["destino_provincia"] = destino_prov
                 self.initial["destino_localidad"] = destino_loc
         else:
-            # Alta
+            # Alta: campos dependientes vacíos
             self.fields["salida_provincia"].queryset = Provincia.objects.none()
             self.fields["salida_localidad"].queryset = Localidad.objects.none()
             self.fields["destino_provincia"].queryset = Provincia.objects.none()
             self.fields["destino_localidad"].queryset = Localidad.objects.none()
 
-        # Si viene POST, actualizar querysets para validar
+        # Actualiza querysets si viene POST (para validar correctamente)
         data = self.data or None
         if data:
             sp = data.get("salida_pais")
@@ -131,8 +136,13 @@ class ViajeForm(forms.ModelForm):
             if dprov:
                 self.fields["destino_localidad"].queryset = Localidad.objects.filter(provincia_id=dprov).order_by("nombre")
 
-    # Validación: marcar campo específico en lugar de error global
     def clean(self):
+        """
+        Validaciones de campos específicos:
+        - cliente
+        - salida_localidad
+        - destino_localidad
+        """
         cleaned = super().clean()
 
         if not cleaned.get("cliente"):
@@ -147,17 +157,23 @@ class ViajeForm(forms.ModelForm):
         return cleaned
 
     def save(self, commit=True):
+        """
+        Sobrescribe save() para:
+        - asignar FKs reales de salida/destino
+        - el vehiculo se asigna desde la view
+        """
         instance = super().save(commit=False)
-        # Asignar FKs reales desde las cascadas
         instance.salida = self.cleaned_data["salida_localidad"]
         instance.destino = self.cleaned_data["destino_localidad"]
-        # El vehiculo lo setea la view: form.instance.vehiculo = vehiculo
         if commit:
             instance.save()
         return instance
 
 
 class GastoExtraForm(forms.ModelForm):
+    """
+    Formulario para registrar gastos extras asociados a un viaje.
+    """
     class Meta:
         model = GastoExtra
         fields = ["fecha", "monto", "descripcion"]

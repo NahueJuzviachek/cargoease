@@ -6,28 +6,38 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.db import transaction  # para on_commit
 from django.contrib.auth.decorators import login_required 
-from django.http import JsonResponse, Http404  # ⬅️ AJAX coords
-from ubicaciones.models import Localidad       # ⬅️ AJAX coords
+from django.http import JsonResponse, Http404 
+from ubicaciones.models import Localidad      
 from clientes.models import Cliente
 from .models import Viaje, GastoExtra
-from .forms import ViajeForm
-from .forms import GastoExtraForm  # formulario del gasto extra
+from .forms import ViajeForm, GastoExtraForm
 from vehiculos.models import Vehiculo
-from .mixins import ORSContextMixin
+from .mixins import ORSContextMixin  # Mixin para contextos de OpenRouteService
 
-
+# -----------------------------
+# LISTADO DE VIAJES POR VEHÍCULO
+# -----------------------------
 class ViajeListView(ORSContextMixin, ListView):
+    """
+    Muestra un listado de viajes filtrado por vehículo.
+    Soporta búsqueda por salida/destino y paginación.
+    """
     model = Viaje
     template_name = "viajes/viajes_list.html"
     context_object_name = "viajes"
     paginate_by = 10
 
     def dispatch(self, request, *args, **kwargs):
-        # Vehículo obligatorio
+        """
+        Captura el vehículo desde la URL y lo guarda para filtros/contexto.
+        """
         self.vehiculo = get_object_or_404(Vehiculo, pk=kwargs["vehiculo_pk"])
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
+        """
+        Filtra viajes del vehículo y aplica búsqueda por salida/destino.
+        """
         qs = (
             super()
             .get_queryset()
@@ -49,8 +59,13 @@ class ViajeListView(ORSContextMixin, ListView):
         ctx["vehiculo"] = self.vehiculo
         return ctx
 
-
+# -----------------------------
+# CREAR VIAJE PARA UN VEHÍCULO
+# -----------------------------
 class VehiculoViajeCreateView(ORSContextMixin, CreateView):
+    """
+    Formulario para agregar un viaje a un vehículo específico.
+    """
     model = Viaje
     form_class = ViajeForm
     template_name = "viajes/viajes_form.html"
@@ -60,16 +75,15 @@ class VehiculoViajeCreateView(ORSContextMixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        # Asociamos el viaje al vehículo del URL
+        # Asociamos el viaje al vehículo
         form.instance.vehiculo = self.vehiculo
         resp = super().form_valid(form)
 
-        vehiculo_id = self.vehiculo.id
-
+        # Recalcular km de aceite después de commit (si existe app aceite)
         def _post_commit():
             try:
                 from aceite.services import recalc_km_aceite_para_vehiculo
-                recalc_km_aceite_para_vehiculo(self.vehiculo) 
+                recalc_km_aceite_para_vehiculo(self.vehiculo)
             except Exception:
                 pass
 
@@ -84,8 +98,13 @@ class VehiculoViajeCreateView(ORSContextMixin, CreateView):
     def get_success_url(self):
         return reverse("vehiculo_viajes_list", kwargs={"vehiculo_pk": self.vehiculo.pk})
 
-
+# -----------------------------
+# EDITAR VIAJE DE UN VEHÍCULO
+# -----------------------------
 class VehiculoViajeUpdateView(ORSContextMixin, UpdateView):
+    """
+    Edita un viaje de un vehículo, bloqueando el campo vehiculo.
+    """
     model = Viaje
     form_class = ViajeForm
     template_name = "viajes/viajes_form.html"
@@ -95,32 +114,26 @@ class VehiculoViajeUpdateView(ORSContextMixin, UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Solo permitimos editar viajes de ese vehículo
-        return (
-            Viaje.objects
-            .filter(vehiculo_id=self.kwargs["vehiculo_pk"])
-            .select_related("vehiculo")
-        )
+        # Solo viajes de este vehículo
+        return Viaje.objects.filter(vehiculo_id=self.kwargs["vehiculo_pk"]).select_related("vehiculo")
 
     def get_form(self, form_class=None):
+        # Bloquea el campo 'vehiculo' en el formulario
         form = super().get_form(form_class)
-        # Si por algún motivo el form trae el campo 'vehiculo', lo bloqueamos visualmente
         if "vehiculo" in form.fields:
             form.fields["vehiculo"].widget.attrs["disabled"] = True
             form.fields["vehiculo"].initial = self.vehiculo
         return form
 
     def form_valid(self, form):
-        # Aseguramos la relación aunque el campo esté disabled
+        # Asegura la relación con vehículo
         form.instance.vehiculo = self.vehiculo
         resp = super().form_valid(form)
-
-        vehiculo_id = self.vehiculo.id
 
         def _post_commit():
             try:
                 from aceite.services import recalc_km_aceite_para_vehiculo
-                recalc_km_aceite_para_vehiculo(vehiculo_id)
+                recalc_km_aceite_para_vehiculo(self.vehiculo.id)
             except Exception:
                 pass
 
@@ -135,26 +148,29 @@ class VehiculoViajeUpdateView(ORSContextMixin, UpdateView):
     def get_success_url(self):
         return reverse("vehiculo_viajes_list", kwargs={"vehiculo_pk": self.vehiculo.pk})
 
-
+# -----------------------------
+# ELIMINAR VIAJE DE UN VEHÍCULO
+# -----------------------------
 class VehiculoViajeDeleteView(ORSContextMixin, DeleteView):
+    """
+    Confirma y elimina un viaje. Recalcula km de aceite después de commit.
+    """
     model = Viaje
     template_name = "viajes/viajes_confirm_delete.html"
 
     def get_queryset(self):
-        # Solo permite borrar viajes de ese vehículo
         return Viaje.objects.filter(vehiculo_id=self.kwargs["vehiculo_pk"])
 
     def delete(self, request, *args, **kwargs):
-        # Guardamos vehiculo antes de borrar para recalcular luego
         self.object = self.get_object()
         vehiculo_id = self.object.vehiculo_id
         resp = super().delete(request, *args, **kwargs)
 
-        vehiculo = self.object.vehiculo
+        # Recalcular km aceite
         def _post_commit():
             try:
                 from aceite.services import recalc_km_aceite_para_vehiculo
-                recalc_km_aceite_para_vehiculo(vehiculo)  
+                recalc_km_aceite_para_vehiculo(self.object.vehiculo)
             except Exception:
                 pass
 
@@ -164,17 +180,16 @@ class VehiculoViajeDeleteView(ORSContextMixin, DeleteView):
     def get_success_url(self):
         return reverse("vehiculo_viajes_list", kwargs={"vehiculo_pk": self.kwargs["vehiculo_pk"]})
 
-
 # -----------------------------
-# Gastos Extra (form arriba + tabla debajo)
+# GASTOS EXTRA DE UN VIAJE
 # -----------------------------
 def gastos_list(request, viaje_id):
     """
-    Vista que muestra el formulario compacto para crear un GastoExtra
-    y debajo la tabla de todos los gastos de ese viaje.
+    Muestra el formulario compacto para crear un GastoExtra
+    y la tabla con los gastos de ese viaje.
     """
     viaje = get_object_or_404(Viaje, pk=viaje_id)
-    gastos = viaje.gastos_extra.all()  # ya viene ordenado por Meta en el modelo
+    gastos = viaje.gastos_extra.all()  # Orden según Meta
 
     if request.method == "POST":
         form = GastoExtraForm(request.POST)
@@ -189,17 +204,12 @@ def gastos_list(request, viaje_id):
     else:
         form = GastoExtraForm()
 
-    ctx = {
-        "viaje": viaje,
-        "gastos": gastos,
-        "form": form,
-    }
+    ctx = {"viaje": viaje, "gastos": gastos, "form": form}
     return render(request, "viajes/gastos_list.html", ctx)
-
 
 def gasto_extra_eliminar(request, viaje_id, gasto_id):
     """
-    Confirma y elimina un gasto extra asociado al viaje.
+    Elimina un gasto extra del viaje, previa confirmación.
     """
     viaje = get_object_or_404(Viaje, pk=viaje_id)
     gasto = get_object_or_404(GastoExtra, pk=gasto_id, viaje=viaje)
@@ -209,17 +219,15 @@ def gasto_extra_eliminar(request, viaje_id, gasto_id):
         messages.success(request, "Gasto extra eliminado.")
         return redirect(reverse("viaje_gastos_list", args=[viaje.id]))
 
-    # Plantilla de confirmación mínima (o podés usar un modal/confirm JS)
     return render(request, "viajes/gasto_extra_confirm_delete.html", {"viaje": viaje, "gasto": gasto})
 
-
 # -----------------------------
-# AJAX: Coordenadas de Localidad (para el mapa)
+# AJAX: COORDENADAS DE LOCALIDAD
 # -----------------------------
 def ajax_localidad_coords(request):
     """
-    Devuelve lat/lng (float) para una Localidad via ?localidad=<id>.
-    Usado por static/viajes/viajes_map.js para trazar la ruta sin geocodificar por nombre.
+    Devuelve lat/lng de una Localidad vía AJAX.
+    Usado por JS para dibujar rutas en mapas.
     """
     loc_id = request.GET.get("localidad")
     if not loc_id:
@@ -237,8 +245,7 @@ def ajax_localidad_coords(request):
 
 def ajax_cliente_ubicacion(request):
     """
-    /viajes/ajax/cliente-ubicacion/?cliente=<id>
-    Devuelve {pais_id, provincia_id, localidad_id} de la ubicación del cliente.
+    Devuelve la ubicación del cliente (pais_id, provincia_id, localidad_id) vía AJAX.
     """
     cli_id = request.GET.get("cliente")
     if not cli_id:
