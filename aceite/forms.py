@@ -1,7 +1,12 @@
 from django import forms
 from .models import TipoAceite
 
+
 class CambioAceiteForm(forms.Form):
+    """
+    Formulario de confirmación para registrar un cambio de aceite.
+    Solo muestra el campo 'filtros_cambiados' si el aceite corresponde al motor.
+    """
     filtros_cambiados = forms.BooleanField(
         required=False,
         label="¿Cambiar filtros?",
@@ -11,6 +16,6 @@ class CambioAceiteForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.aceite = kwargs.pop("aceite", None)
         super().__init__(*args, **kwargs)
-        # Si no es motor, ocultamos el campo
+        # Si no es aceite de motor, oculta el campo de filtros.
         if not self.aceite or self.aceite.tipo != TipoAceite.MOTOR:
             self.fields["filtros_cambiados"].widget = forms.HiddenInput()

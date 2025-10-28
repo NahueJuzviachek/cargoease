@@ -1,23 +1,27 @@
-# aceite/models.py
 from decimal import Decimal
 from django.db import models
 from django.utils import timezone
 
+
 class TipoAceite(models.TextChoices):
+    """Enumeración para los tipos de aceite manejados por el sistema."""
     MOTOR = "motor", "Motor"
     CAJA = "caja", "Caja"
 
+
 class Aceite(models.Model):
+    """
+    Representa el estado actual del aceite de un vehículo (motor o caja).
+    Se actualiza automáticamente con los kilómetros recorridos.
+    """
     vehiculo = models.ForeignKey(
         "vehiculos.Vehiculo",
         on_delete=models.CASCADE,
         related_name="aceites",
         db_index=True,
     )
-
     tipo = models.CharField(max_length=20, choices=TipoAceite.choices, db_index=True)
     km_acumulados = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
-    # La vida útil la fijamos por tipo (Motor 30000, Caja 100000) al crear/cambiar
     vida_util_km = models.PositiveIntegerField(default=30000)
     ciclos = models.PositiveIntegerField(default=0)
     fecha_instalacion = models.DateTimeField(default=timezone.now)
@@ -34,6 +38,7 @@ class Aceite(models.Model):
 
     @property
     def porcentaje_uso(self) -> float:
+        """Retorna el porcentaje de vida útil consumida del aceite."""
         try:
             if self.vida_util_km <= 0:
                 return 0.0
@@ -43,6 +48,10 @@ class Aceite(models.Model):
 
 
 class AceiteCambio(models.Model):
+    """
+    Historial de cambios de aceite.
+    Cada registro representa un cambio completo (fecha, km y filtros reemplazados).
+    """
     aceite = models.ForeignKey(Aceite, on_delete=models.CASCADE, related_name="historial")
     fecha = models.DateTimeField(default=timezone.now)
     km_acumulados_al_cambio = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))

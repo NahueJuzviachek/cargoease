@@ -11,19 +11,19 @@
     </div>
 
     <div class="row g-3">
-        <!-- CARD: MOTOR -->
+        <!-- Tarjeta de aceite de motor -->
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="mb-2">Aceite de Motor</h5>
 
-                    <!-- Gráfico -->
+                    <!-- Gráfico de progreso de aceite -->
                     <canvas id="chartMotor" class="aceite-chart"></canvas>
                     <small class="text-muted d-block mt-2">
                         {{ km_motor|default:0 }} km / Máximo {{ max_motor }} km
                     </small>
 
-                    <!-- Último cambio -->
+                    <!-- Información del último cambio -->
                     <div class="mt-2">
                         {% with ultimo=motor.historial.first %}
                         {% if ultimo %}
@@ -37,7 +37,7 @@
                         {% endwith %}
                     </div>
 
-                    <!-- Acciones -->
+                    <!-- Acción: registrar nuevo cambio -->
                     <form class="mt-auto pt-2 d-flex align-items-center justify-content-between" method="post"
                         action="{% url 'vehiculo_aceite_motor_cambiar' vehiculo_pk=vehiculo.id %}">
                         {% csrf_token %}
@@ -50,19 +50,19 @@
             </div>
         </div>
 
-        <!-- CARD: CAJA -->
+        <!-- Tarjeta de aceite de caja -->
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="mb-2">Aceite de Caja</h5>
 
-                    <!-- Gráfico -->
+                    <!-- Gráfico de progreso de aceite -->
                     <canvas id="chartCaja" class="aceite-chart"></canvas>
                     <small class="text-muted d-block mt-2">
                         {{ km_caja|default:0 }} km / Máximo {{ max_caja }} km
                     </small>
 
-                    <!-- Último cambio -->
+                    <!-- Información del último cambio -->
                     <div class="mt-2">
                         {% with ultimo=caja.historial.first %}
                         {% if ultimo %}
@@ -75,7 +75,7 @@
                         {% endwith %}
                     </div>
 
-                    <!-- Acciones -->
+                    <!-- Acción: registrar nuevo cambio -->
                     <form class="mt-auto pt-2 d-flex align-items-center justify-content-between" method="post"
                         action="{% url 'vehiculo_aceite_caja_cambiar' vehiculo_pk=vehiculo.id %}">
                         {% csrf_token %}
@@ -90,13 +90,13 @@
     </div>
 </div>
 
-<!-- Datos para JS -->
+<!-- Variables del backend disponibles para el script -->
 {{ km_motor|default:0|json_script:"km_motor" }}
 {{ km_caja|default:0|json_script:"km_caja" }}
 {{ max_motor|json_script:"max_motor" }}
 {{ max_caja|json_script:"max_caja" }}
 
-<!-- Scripts -->
+<!-- Dependencias y scripts del módulo -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{% static 'aceite/aceite.js' %}"></script>
 {% endblock %}
