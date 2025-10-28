@@ -2,35 +2,42 @@
 {% load static %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/index.css' %}"/>
+<link rel="stylesheet" href="{% static 'css/index.css' %}" />
 
 <div class="container my-4" style="max-width: 720px;">
+
+  <!-- Título dinámico según si se edita o agrega -->
   <h2 class="titulo-clientes text-center">
     {% if object %}Editar Conductor{% else %}Agregar Conductor{% endif %}
   </h2>
 
+  <!-- Formulario de conductor -->
   <form method="post" class="mt-4" novalidate>
     {% csrf_token %}
     {{ form.non_field_errors }}
 
+    <!-- Nombre y Apellido -->
     <div class="mb-3">
       <label class="form-label">{{ form.nombreApellido.label }}</label>
       {{ form.nombreApellido }}
       {{ form.nombreApellido.errors }}
     </div>
 
+    <!-- DNI -->
     <div class="mb-3">
       <label class="form-label">{{ form.dni.label }}</label>
       {{ form.dni }}
       {{ form.dni.errors }}
     </div>
 
+    <!-- Selección de Vehículo -->
     <div class="mb-3">
       <label class="form-label">{{ form.vehiculo.label }}</label>
       {{ form.vehiculo }}
       {{ form.vehiculo.errors }}
     </div>
 
+    <!-- Dominio (readonly) -->
     <div class="mb-3">
       <label class="form-label">{{ form.dominio.label }}</label>
       {{ form.dominio }}
@@ -38,6 +45,7 @@
       {{ form.dominio.errors }}
     </div>
 
+    <!-- Botones -->
     <div class="d-flex gap-2">
       <a class="btn btn-outline-secondary" href="{% url 'conductores_list' %}">Cancelar</a>
       <button class="btn btn-success" type="submit">Guardar</button>
@@ -45,26 +53,29 @@
   </form>
 </div>
 
+<!-- Script para actualizar dominio según vehículo -->
 <script>
   (function () {
     const select = document.getElementById("id_vehiculo");
     const domInput = document.getElementById("id_dominio");
 
+    // Diccionario: { vehiculo_id: dominio }
     const dominiosPorVehiculo = {
       {% for v in form.fields.vehiculo.queryset %}
-        "{{ v.pk }}": "{{ v.dominio }}",
+    "{{ v.pk }}": "{{ v.dominio }}",
       {% endfor %}
     };
 
-    function syncDominio() {
-      const vid = select.value;
-      domInput.value = dominiosPorVehiculo[vid] || "";
-    }
+  // Sincroniza dominio cuando se selecciona un vehículo
+  function syncDominio() {
+    const vid = select.value;
+    domInput.value = dominiosPorVehiculo[vid] || "";
+  }
 
-    syncDominio();
-    select.addEventListener("change", syncDominio);
-  })();
+  // Inicializa y agrega listener
+  syncDominio();
+  select.addEventListener("change", syncDominio);
+  }) ();
 </script>
+
 {% endblock %}
-
-

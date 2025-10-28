@@ -5,13 +5,15 @@
 <link rel="stylesheet" href="{% static 'css/index.css' %}" />
 
 <div class="container my-4">
+
+  <!-- Título principal -->
   <div class="row">
     <div class="col-12 text-center">
       <h1 class="titulo-clientes">CONDUCTORES</h1>
     </div>
   </div>
 
-  <!-- Buscador -->
+  <!-- Buscador de conductores -->
   <form method="get" class="d-flex justify-content-center my-3">
     <div class="input-group" style="max-width: 500px; width: 100%;">
       <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar por nombre...">
@@ -19,6 +21,8 @@
         <i class="bi bi-search"></i>
       </button>
     </div>
+
+    <!-- Botón para agregar un nuevo conductor -->
     <div class="ms-3">
       <a class="btn btn-success" href="{% url 'conductor_crear' %}" title="Agregar conductor">
         <i class="bi bi-person-plus"></i>
@@ -26,7 +30,7 @@
     </div>
   </form>
 
-  <!-- Tabla -->
+  <!-- Tabla de conductores -->
   <div class="table-responsive mt-3">
     <table class="table table-striped text-center">
       <thead>
@@ -46,11 +50,11 @@
           <td>{{ conductor.vehiculo.marca }} {{ conductor.vehiculo.modelo }}</td>
           <td>{{ conductor.dominio }}</td>
           <td>
-            <!-- Editar -->
+            <!-- Botón Editar -->
             <a class="btn btn-sm btn-outline-warning" href="{% url 'conductor_editar' conductor.pk %}" title="Editar">
               <i class="bi bi-pencil"></i>
             </a>
-            <!-- Eliminar -->
+            <!-- Botón Eliminar -->
             <a class="btn btn-sm btn-outline-danger" href="{% url 'conductor_eliminar' conductor.pk %}"
               title="Eliminar">
               <i class="bi bi-trash"></i>

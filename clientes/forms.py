@@ -2,18 +2,17 @@ from django import forms
 from .models import Cliente
 from ubicaciones.models import Pais, Provincia, Localidad
 
-
 class ClienteForm(forms.ModelForm):
+    """
+    Formulario de creación/edición de clientes con carga dinámica
+    de provincias y localidades según el país seleccionado.
+    """
     class Meta:
         model = Cliente
         fields = ["nombre", "correo", "pais", "provincia", "localidad"]
         widgets = {
-            "nombre": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Nombre"}
-            ),
-            "correo": forms.EmailInput(
-                attrs={"class": "form-control", "placeholder": "correo@ejemplo.com"}
-            ),
+            "nombre": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre"}),
+            "correo": forms.EmailInput(attrs={"class": "form-control", "placeholder": "correo@ejemplo.com"}),
             "pais": forms.Select(attrs={"class": "form-select"}),
             "provincia": forms.Select(attrs={"class": "form-select"}),
             "localidad": forms.Select(attrs={"class": "form-select"}),
@@ -29,10 +28,10 @@ class ClienteForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Siempre cargar países
+        # Carga todos los países
         self.fields["pais"].queryset = Pais.objects.all().order_by("nombre")
 
-        # Provincias dinámicas según país
+        # Carga dinámica de provincias según país seleccionado
         if "pais" in self.data:
             try:
                 pais_id = int(self.data.get("pais"))
@@ -44,7 +43,7 @@ class ClienteForm(forms.ModelForm):
         else:
             self.fields["provincia"].queryset = Provincia.objects.none()
 
-        # Localidades dinámicas según provincia
+        # Carga dinámica de localidades según provincia seleccionada
         if "provincia" in self.data:
             try:
                 prov_id = int(self.data.get("provincia"))

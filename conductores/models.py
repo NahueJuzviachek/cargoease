@@ -1,10 +1,12 @@
 from django.db import models
 from vehiculos.models import Vehiculo
 
-
 class Conductor(models.Model):
+    """
+    Modelo que representa un conductor asignado a un vehículo.
+    """
     nombreApellido = models.CharField("Nombre y Apellido", max_length=100)
-    dni = models.CharField("DNI", max_length=10, unique=True)
+    dni = models.CharField("DNI", max_length=10, unique=True)  # Documento único
     vehiculo = models.ForeignKey(
         Vehiculo,
         on_delete=models.CASCADE,
@@ -25,6 +27,7 @@ class Conductor(models.Model):
         ordering = ["id"]
 
     def __str__(self):
+        """
+        Representación legible: Nombre y DNI.
+        """
         return f"{self.nombreApellido} ({self.dni})"
-
-

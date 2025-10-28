@@ -15,16 +15,17 @@
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="row g-3 align-items-start">
+                <!-- Información general del aceite y el vehículo -->
                 <div class="col-md-7">
                     <h5 class="mb-2">
                         Vehículo: <span class="fw-semibold">{{ vehiculo }}</span>
                     </h5>
                     <p class="mb-2">
-                        Tipo de aceite: <span class="fw-semibold">
-                            {{ aceite.get_tipo_display|default_if_none:"—" }}
-                        </span>
+                        Tipo de aceite:
+                        <span class="fw-semibold">{{ aceite.get_tipo_display|default_if_none:"—" }}</span>
                     </p>
 
+                    <!-- Datos técnicos y de mantenimiento -->
                     <ul class="list-unstyled small mb-3">
                         <li class="mb-1">
                             <span class="text-muted">Km actuales:&nbsp;</span>
@@ -38,11 +39,13 @@
                             <span class="text-muted">Instalado:&nbsp;</span>
                             <span class="fw-semibold">{{ aceite.fecha_instalacion|date:"d/m/Y" }}</span>
                         </li>
+
                         {% with ultimo=aceite.historial.first %}
                         {% if ultimo %}
                         <li class="mb-1">
                             <span class="text-muted">Último cambio:&nbsp;</span>
                             <span class="fw-semibold">{{ ultimo.fecha|date:"d/m/Y" }}</span>
+
                             {% if aceite.tipo == 'motor' %}
                             <span class="ms-2 text-muted">Filtros:&nbsp;</span>
                             <span class="fw-semibold">{{ ultimo.filtros_cambiados|yesno:"sí,no" }}</span>
@@ -57,15 +60,17 @@
                         {% endwith %}
                     </ul>
 
+                    <!-- Advertencia sobre la acción -->
                     <div class="alert alert-warning py-2 px-3 mb-0">
                         Esto <strong>reseteará el contador a 0 km</strong>, incrementará el ciclo y registrará el
                         historial.
                     </div>
                 </div>
 
+                <!-- Formulario de confirmación -->
                 <div class="col-md-5">
-                    <!-- Formularios de confirmación -->
                     {% if aceite.tipo == 'motor' %}
+                    <!-- Formulario para aceite de motor (incluye opción de filtros) -->
                     <form method="post" action="{% url 'vehiculo_aceite_motor_cambiar' vehiculo_pk=vehiculo.id %}"
                         class="d-grid gap-3">
                         {% csrf_token %}
@@ -80,6 +85,7 @@
                         </div>
                     </form>
                     {% else %}
+                    <!-- Formulario para aceite de caja -->
                     <form method="post" action="{% url 'vehiculo_aceite_caja_cambiar' vehiculo_pk=vehiculo.id %}"
                         class="d-grid gap-3">
                         {% csrf_token %}
