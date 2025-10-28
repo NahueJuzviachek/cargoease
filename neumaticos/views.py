@@ -1,25 +1,34 @@
-# neumaticos/views.py
 from django.contrib import messages
 from django.shortcuts import render, redirect
 
-# Formularios (conservá tus formularios existentes)
+# Formularios para operaciones de neumáticos
 from .forms import ReubicarForm
-# Selectors/queries para armar la vista
+# Funciones auxiliares para listar y mapear datos de neumáticos
 from .selectors import listar_vehiculos_con_neumaticos, listar_almacen, mapear_neumaticos_por_eje
 from .utils import nro_to_pos
 from .constants import CAPS_POR_TIPO
 
-# ✅ Importamos el módulo de servicios entero (robusto ante import parcial)
+# Importa todos los servicios del módulo para operaciones robustas
 from . import services as svc
 
 from .models import Neumatico
 
 
+# =========================
+# Lista de neumáticos
+# =========================
 def neumaticos_list(request):
+    """
+    Renderiza la vista principal de neumáticos:
+    - Lista de vehículos con sus neumáticos por eje
+    - Inventario de neumáticos en almacén
+    - Capacidades por tipo de neumático
+    """
     vehiculos = listar_vehiculos_con_neumaticos()
     almacen = listar_almacen()
     neumaticos_map = mapear_neumaticos_por_eje(vehiculos, nro_to_pos)
 
+    # Construye contexto de vehículos con sus neumáticos por eje
     vehiculos_ctx = []
     for v in vehiculos:
         data = neumaticos_map.get(v.id, {"ejes": v.ejes, "por_eje": []})
@@ -32,7 +41,15 @@ def neumaticos_list(request):
     })
 
 
+# =========================
+# Reubicar neumáticos
+# =========================
 def neumaticos_reubicar(request):
+    """
+    Intercambia la ubicación de dos neumáticos.
+    - Método: POST
+    - Usa el formulario ReubicarForm
+    """
     if request.method != "POST":
         return redirect("neumaticos_list")
 
@@ -53,7 +70,14 @@ def neumaticos_reubicar(request):
     return redirect("neumaticos_list")
 
 
+# =========================
+# Recapar neumáticos
+# =========================
 def neumaticos_recapar(request):
+    """
+    Reinicia los km de neumáticos seleccionados (máx. 2) como parte del proceso de recapado.
+    - Método: POST
+    """
     if request.method != "POST":
         return redirect("neumaticos_list")
 
@@ -68,7 +92,15 @@ def neumaticos_recapar(request):
     return redirect("neumaticos_list")
 
 
+# =========================
+# Crear neumático en almacén
+# =========================
 def neumaticos_nuevo_almacen(request):
+    """
+    Crea un neumático nuevo en el almacén.
+    - Método: POST
+    - 'tipo_condicion' define si es nuevo, usado, etc.
+    """
     if request.method != "POST":
         return redirect("neumaticos_list")
 
@@ -78,10 +110,14 @@ def neumaticos_nuevo_almacen(request):
     return redirect("neumaticos_list")
 
 
+# =========================
+# Eliminar neumático del almacén
+# =========================
 def neumaticos_eliminar_almacen(request):
     """
-    Marca como eliminados los neumáticos seleccionados que estén en almacén (vehiculo=None, montado=False).
-    Si además usás soft-delete a nivel modelo, podés sumarlo aquí.
+    Marca neumáticos como eliminados en el almacén.
+    - Solo neumáticos que no estén montados en vehículos (vehiculo=None, montado=False)
+    - Soporta soft-delete si el modelo tiene implementado 'soft_delete'
     """
     if request.method != "POST":
         return redirect("neumaticos_list")
@@ -92,20 +128,20 @@ def neumaticos_eliminar_almacen(request):
         messages.error(request, "No seleccionaste neumáticos del almacén para eliminar.")
         return redirect("neumaticos_list")
 
-    # Si además querés soft-deletear (estado ELIMINADO), podés hacerlo aquí:
+    # Marca neumáticos como eliminados (soft delete si existe)
     marcados = 0
     for n in Neumatico.objects.filter(pk__in=ids, vehiculo__isnull=True, montado=False):
-        # Si tenés soft delete en el modelo:
         if hasattr(n, "soft_delete"):
             n.soft_delete()
         marcados += 1
 
-    # Borrado físico de registros en almacén (y/o de neumaticos en almacén)
+    # Eliminación física en almacén mediante servicio
     try:
         svc.eliminar_neumaticos_del_almacen(ids)
     except Exception:
         pass
 
+    # Mensajes según resultado
     if marcados:
         messages.success(request, f"{marcados} neumático(s) marcados como eliminados.")
     else:
