@@ -64,7 +64,7 @@ class Neumatico(models.Model):
 
     vehiculo = models.ForeignKey(
         Vehiculo,
-        on_delete=models.SET_NULL,                 # mantenemos tu comportamiento actual
+        on_delete=models.SET_NULL,                 # mantenemos el comportamiento actual
         related_name="neumaticos",
         db_column="idVehiculo",
         verbose_name="Vehículo",
