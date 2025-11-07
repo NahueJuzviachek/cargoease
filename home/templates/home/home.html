@@ -22,15 +22,23 @@
     <div class="col-12 col-lg-6">
       <div class="card h-100 shadow-sm">
         <div class="card-body">
-          <div class="text-center mb-3">
-            <i class="bi bi-people"></i>
-            <h5 class="card-title mb-0 d-inline-block ms-2">Clientes más recurrentes (mensual)</h5>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="text-center">
+              <i class="bi bi-people"></i>
+              <h5 class="card-title mb-0 d-inline-block ms-2">Clientes más recurrentes (mensual)</h5>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+              data-bs-target="#reporteClientesModal">
+              Generar reporte
+            </button>
           </div>
+
           <div class="d-flex justify-content-center gap-2 mb-2">
             <input type="month" id="cliDesde" class="form-control form-control-sm" style="width: 150px;">
             <input type="month" id="cliHasta" class="form-control form-control-sm" style="width: 150px;">
             <button id="cliAplicar" class="btn btn-primary btn-sm">Aplicar</button>
           </div>
+
           <div class="chart-wrap">
             <canvas id="chartClientesTopMensual" height="160"></canvas>
             <div class="chart-empty d-none" id="emptyClientes">Sin datos para el período</div>
@@ -95,6 +103,7 @@
         </div>
       </div>
     </div>
+
   </div>
 
   <!-- Acceso a vehículos -->
@@ -109,7 +118,9 @@
     {% endif %}
   </div>
 </div>
+</div>
+{% endblock %}
 
-<!-- cache busting con ?v=... -->
+{% block scripts %}
 <script src="{% static 'home/js/dashboard.js' %}?v=20251023"></script>
 {% endblock %}

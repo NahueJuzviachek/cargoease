@@ -2,11 +2,11 @@ from decimal import Decimal
 from django.contrib import messages
 from django.db import transaction
 from django.http import Http404, HttpResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.template.loader import select_template
 from vehiculos.models import Vehiculo
-from .models import Aceite, TipoAceite
+from .models import Aceite, TipoAceite, AceiteCambio
 from .forms import CambioAceiteForm
 from .services import registrar_cambio_aceite, recalc_km_aceite_para_vehiculo
 
@@ -150,3 +150,20 @@ def aceite_cambiar(request, vehiculo_pk: int, tipo: str):
     if tipo not in ("motor", "caja"):
         raise Http404("Tipo de aceite inválido.")
     return _confirmar_cambio(request, vehiculo_pk, tipo)
+
+def historial_aceites(request, vehiculo_pk):
+    vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_pk)
+
+    # Traemos todos los cambios asociados a aceites de ese vehículo
+    cambios = (
+        AceiteCambio.objects
+        .select_related('aceite')
+        .filter(aceite__vehiculo_id=vehiculo_pk)
+        .order_by('-fecha')
+    )
+
+    context = {
+        'vehiculo': vehiculo,
+        'cambios': cambios,
+    }
+    return render(request, 'aceite/historial_aceites.html', context)

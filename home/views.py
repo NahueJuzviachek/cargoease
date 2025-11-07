@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, date, time as dtime
 from calendar import month_name, monthrange
 from collections import defaultdict
+from django.utils.dateparse import parse_date
 
 from django.db.models import (
     Sum, F, Value, CharField, Case, When, Count,
@@ -296,3 +297,18 @@ def data_neumaticos_estado(request):
     labels = [a['nombre'] for a in agg]
     values = [a['cant'] for a in agg]
     return JsonResponse({"labels": labels, "values": values})
+
+def reporte_clientes_view(request):
+    desde = request.GET.get('desde')
+    hasta = request.GET.get('hasta')
+    # Convertimos a fecha si es necesario
+    desde_date = parse_date(desde)
+    hasta_date = parse_date(hasta)
+    # Lógica de generar el reporte
+    clientes = []  # aquí iría tu query
+    context = {
+        'clientes': clientes,
+        'desde': desde_date,
+        'hasta': hasta_date,
+    }
+    return render(request, 'home/reporte_clientes.html', context)

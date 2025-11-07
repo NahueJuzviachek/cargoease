@@ -11,4 +11,7 @@ urlpatterns = [
     path("dashboard/data/ranking-km/", login_required(views.data_ranking_km), name="data_ranking_km"),
     path("dashboard/data/aceite-top5/", login_required(views.data_aceite_top5), name="data_aceite_top5"),
     path("dashboard/data/neumaticos-estado/", login_required(views.data_neumaticos_estado), name="data_neumaticos_estado"),
+    
+    # Botones de reportes
+    path('reporte/clientes/', views.reporte_clientes_view, name='generar_reporte_clientes'),
 ]

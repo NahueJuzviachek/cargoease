@@ -1,0 +1,37 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container my-4">
+    <h2>Historial de cambios de aceite – Vehículo {{ vehiculo }}</h2>
+
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Fecha y hora</th>
+                <th>Kilómetros al cambio</th>
+                <th>Filtros cambiados</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cambio in cambios %}
+            <tr>
+                <td>{{ cambio.aceite.get_tipo_display }}</td>
+                <td>{{ cambio.fecha|date:"d/m/Y H:i" }}</td>
+                <td>{{ cambio.km_acumulados_al_cambio }}</td>
+                <td>{{ cambio.filtros_cambiados|yesno:"Sí,No" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No hay cambios registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'aceite:aceite_panel' vehiculo_pk=vehiculo.id %}" class="btn btn-secondary mt-3">
+        Volver
+    </a>
+</div>
+{% endblock %}
