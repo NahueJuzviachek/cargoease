@@ -1,4 +1,3 @@
-// viajes/static/viajes/viajes.js
 (function () {
     // Selector rápido por CSS
     const $ = (sel) => document.querySelector(sel);
@@ -171,4 +170,39 @@
             selCliente.dispatchEvent(new Event("change"));
         }
     });
+})();
+
+/* -----------------------
+   Auto-submit para #order-select
+   -----------------------
+   Detecta cambios en el select de orden y vuelve a cargar la página
+   manteniendo los parámetros del form (q, order) y borrando 'page'.
+*/
+(function () {
+    try {
+        const orderSel = document.getElementById('order-select');
+        if (!orderSel) return;
+
+        const form = orderSel.closest('form');
+        if (!form) return;
+
+        orderSel.addEventListener('change', function () {
+            // Construir querystring a partir del form (mantiene q y order, elimina page)
+            const formData = new FormData(form);
+            // Asegurarse de que el nuevo valor del select esté en formData
+            formData.set('order', orderSel.value);
+            const urlParams = new URLSearchParams();
+            for (const pair of formData.entries()) {
+                // Omitir keys vacíos
+                if (pair[1] === null || pair[1] === undefined || pair[1] === '') continue;
+                if (pair[0] === 'page') continue; // resetear page al cambiar orden
+                urlParams.append(pair[0], pair[1]);
+            }
+            const action = form.getAttribute('action') || window.location.pathname;
+            const target = action + '?' + urlParams.toString();
+            window.location.href = target;
+        });
+    } catch (e) {
+        console.error('[viajes.js] Error en order-select auto-submit', e);
+    }
 })();

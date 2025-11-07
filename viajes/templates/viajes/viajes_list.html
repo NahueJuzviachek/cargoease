@@ -4,23 +4,41 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/index.css' %}" />
 
-<div class="container my-4">
+<div class="container-fluid my-4">  {# container-fluid ocupa todo el ancho #}
     <div class="row">
         <div class="col-12 text-center">
             <h1 class="titulo-clientes text-center">Viajes de {{ vehiculo }}</h1>
         </div>
     </div>
 
-    <!-- Buscador -->
-    <form method="get" class="d-flex justify-content-center my-3">
-        <div class="input-group" style="max-width: 500px; width: 100%;">
+    <!-- Buscador + selector de orden -->
+    <form method="get" class="d-flex justify-content-center my-3 align-items-center flex-wrap gap-2">
+
+        <!-- Buscador -->
+        <div class="input-group" style="max-width: 400px;">
             <input type="text" name="q" value="{{ q }}" class="form-control"
-                placeholder="Buscar por salida o destino..." />
+                placeholder="Buscar por salida o destino...">
             <button class="btn btn-primary" type="submit" title="Buscar">
                 <i class="bi bi-search"></i>
             </button>
         </div>
-        <div class="ms-3">
+
+        <!-- Filtro de orden -->
+        <div>
+            <select name="order" id="order-select" class="form-select form-select-sm">
+                <option value="all" {% if not order or order == 'all' %}selected{% endif %}>Todos</option>
+                <option value="recent" {% if order == 'recent' %}selected{% endif %}>Más recientes</option>
+                <option value="oldest" {% if order == 'oldest' %}selected{% endif %}>Más antiguos</option>
+            </select>
+        </div>
+
+        <!-- Fecha específica -->
+        <div>
+            <input type="date" name="date" value="{{ date }}" class="form-control form-control-sm">
+        </div>
+
+        <!-- Botón de agregar -->
+        <div>
             <a class="btn btn-success" href="{% url 'vehiculo_viaje_crear' vehiculo.pk %}" title="Agregar viaje">
                 <i class="bi bi-plus-circle"></i>
             </a>
@@ -29,8 +47,9 @@
 
     <div class="row mt-2">
         <div class="col-12">
-            <div class="table-responsive">
-                <table class="table table-striped table-clientes">
+            <!-- Quitamos la restricción horizontal -->
+            <div class="table-responsive" style="overflow-x: auto; max-width: 100%;">
+                <table class="table table-striped table-clientes w-100" style="min-width: 1200px;">
                     <thead>
                         <tr>
                             <th class="centered">Fecha</th>
@@ -85,21 +104,18 @@
                             <!-- Acciones -->
                             <td class="centered">
                                 <div class="btn-group" role="group">
-                                    <!-- Editar -->
                                     <a class="btn btn-sm btn-outline-primary"
                                         href="{% url 'vehiculo_viaje_editar' vehiculo.pk v.pk %}" title="Editar">
                                         <i class="bi bi-pencil"></i>
                                     </a>
 
-                                    <!-- Eliminar -->
                                     <a class="btn btn-sm btn-outline-danger"
                                         href="{% url 'vehiculo_viaje_eliminar' vehiculo.pk v.pk %}" title="Eliminar">
                                         <i class="bi bi-trash"></i>
                                     </a>
 
-                                    <!-- Gastos extra -->
-                                    <a class="btn btn-sm btn-outline-warning" href="{% url 'viaje_gastos_list' v.pk %}"
-                                        title="Gastos extra">
+                                    <a class="btn btn-sm btn-outline-warning"
+                                        href="{% url 'viaje_gastos_list' v.pk %}" title="Gastos extra">
                                         <i class="bi bi-receipt"></i>
                                     </a>
                                 </div>
@@ -119,9 +135,11 @@
             <nav aria-label="Paginación">
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?q={{ q }}&page=1">Primera</a></li>
+                    <li class="page-item"><a class="page-link" href="?q={{ q }}&order={{ order }}&page=1">Primera</a>
+                    </li>
                     <li class="page-item"><a class="page-link"
-                            href="?q={{ q }}&page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                            href="?q={{ q }}&order={{ order }}&page={{ page_obj.previous_page_number }}">Anterior</a>
+                    </li>
                     {% else %}
                     <li class="page-item disabled"><span class="page-link">Primera</span></li>
                     <li class="page-item disabled"><span class="page-link">Anterior</span></li>
@@ -133,9 +151,9 @@
 
                     {% if page_obj.has_next %}
                     <li class="page-item"><a class="page-link"
-                            href="?q={{ q }}&page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                            href="?q={{ q }}&order={{ order }}&page={{ page_obj.next_page_number }}">Siguiente</a></li>
                     <li class="page-item"><a class="page-link"
-                            href="?q={{ q }}&page={{ page_obj.paginator.num_pages }}">Última</a></li>
+                            href="?q={{ q }}&order={{ order }}&page={{ page_obj.paginator.num_pages }}">Última</a></li>
                     {% else %}
                     <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
                     <li class="page-item disabled"><span class="page-link">Última</span></li>

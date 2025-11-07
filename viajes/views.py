@@ -5,14 +5,18 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.db import transaction  # para on_commit
-from django.contrib.auth.decorators import login_required 
-from django.http import JsonResponse, Http404 
-from ubicaciones.models import Localidad      
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse, Http404
+from django.utils.dateparse import parse_date
+from django.db import models as dj_models
+
+from ubicaciones.models import Localidad
 from clientes.models import Cliente
 from .models import Viaje, GastoExtra
 from .forms import ViajeForm, GastoExtraForm
 from vehiculos.models import Vehiculo
 from .mixins import ORSContextMixin  # Mixin para contextos de OpenRouteService
+
 
 # -----------------------------
 # LISTADO DE VIAJES POR VEHÍCULO
@@ -20,7 +24,15 @@ from .mixins import ORSContextMixin  # Mixin para contextos de OpenRouteService
 class ViajeListView(ORSContextMixin, ListView):
     """
     Muestra un listado de viajes filtrado por vehículo.
-    Soporta búsqueda por salida/destino y paginación.
+    Soporta búsqueda por salida/destino, paginación, orden según `order` y filtrado por fecha (`date`).
+    Opciones de `order`:
+      - 'all'    -> Todos (sin order_by explícito, respeta orden de la BD/Meta)
+      - 'recent' -> Más recientes (fecha desc)
+      - 'oldest' -> Más antiguos (fecha asc)
+    Parámetros GET:
+      - q: búsqueda por salida/destino
+      - order: all|recent|oldest
+      - date: YYYY-MM-DD  (filtra por día)
     """
     model = Viaje
     template_name = "viajes/viajes_list.html"
@@ -37,27 +49,61 @@ class ViajeListView(ORSContextMixin, ListView):
     def get_queryset(self):
         """
         Filtra viajes del vehículo y aplica búsqueda por salida/destino.
+        Aplica filtrado por fecha (si se provee `date`) y orden según el parámetro 'order'.
         """
         qs = (
             super()
             .get_queryset()
             .select_related("vehiculo", "salida", "destino", "divisa", "cliente")
             .filter(vehiculo=self.vehiculo)
-            .order_by("-fecha", "-creado_en")
         )
+
+        # Búsqueda por salida/destino
         q = self.request.GET.get("q", "").strip()
         if q:
             qs = qs.filter(
                 Q(salida__nombre__icontains=q) |
                 Q(destino__nombre__icontains=q)
             )
+
+        # Filtrado por fecha exacta (espera YYYY-MM-DD desde <input type="date">)
+        date_str = self.request.GET.get("date", "").strip()
+        if date_str:
+            parsed = parse_date(date_str)  # devuelve datetime.date o None
+            if parsed:
+                try:
+                    # Detectar tipo de campo 'fecha' en el modelo y aplicar lookup apropiado
+                    field = Viaje._meta.get_field('fecha')
+                    if isinstance(field, dj_models.DateTimeField):
+                        qs = qs.filter(fecha__date=parsed)
+                    else:
+                        # DateField u otro -> comparar directamente
+                        qs = qs.filter(fecha=parsed)
+                except Exception:
+                    # Si hubiera cualquier problema al inspeccionar el campo,
+                    # intentamos un fallback tratando de filtrar por fecha directamente.
+                    qs = qs.filter(fecha__date=parsed)
+
+        # Orden según parámetro
+        order = self.request.GET.get("order", "all")
+        if order == "recent":
+            qs = qs.order_by("-fecha", "-creado_en")
+        elif order == "oldest":
+            qs = qs.order_by("fecha", "creado_en")
+        else:
+            # 'all' -> no se aplica order_by explícito (mantiene orden natural o el definido en Meta)
+            pass
+
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["q"] = self.request.GET.get("q", "").strip()
         ctx["vehiculo"] = self.vehiculo
+        ctx["order"] = self.request.GET.get("order", "all")
+        ctx["date"] = self.request.GET.get("date", "")
         return ctx
+
 
 # -----------------------------
 # CREAR VIAJE PARA UN VEHÍCULO
@@ -97,6 +143,7 @@ class VehiculoViajeCreateView(ORSContextMixin, CreateView):
 
     def get_success_url(self):
         return reverse("vehiculo_viajes_list", kwargs={"vehiculo_pk": self.vehiculo.pk})
+
 
 # -----------------------------
 # EDITAR VIAJE DE UN VEHÍCULO
@@ -148,6 +195,7 @@ class VehiculoViajeUpdateView(ORSContextMixin, UpdateView):
     def get_success_url(self):
         return reverse("vehiculo_viajes_list", kwargs={"vehiculo_pk": self.vehiculo.pk})
 
+
 # -----------------------------
 # ELIMINAR VIAJE DE UN VEHÍCULO
 # -----------------------------
@@ -170,7 +218,6 @@ class VehiculoViajeDeleteView(ORSContextMixin, DeleteView):
         def _post_commit():
             try:
                 from aceite.services import recalc_km_aceite_para_vehiculo
-                recalc_km_aceite_para_vehiculo(self.object.vehiculo)
             except Exception:
                 pass
 
@@ -179,6 +226,7 @@ class VehiculoViajeDeleteView(ORSContextMixin, DeleteView):
 
     def get_success_url(self):
         return reverse("vehiculo_viajes_list", kwargs={"vehiculo_pk": self.kwargs["vehiculo_pk"]})
+
 
 # -----------------------------
 # GASTOS EXTRA DE UN VIAJE
@@ -207,6 +255,7 @@ def gastos_list(request, viaje_id):
     ctx = {"viaje": viaje, "gastos": gastos, "form": form}
     return render(request, "viajes/gastos_list.html", ctx)
 
+
 def gasto_extra_eliminar(request, viaje_id, gasto_id):
     """
     Elimina un gasto extra del viaje, previa confirmación.
@@ -220,6 +269,7 @@ def gasto_extra_eliminar(request, viaje_id, gasto_id):
         return redirect(reverse("viaje_gastos_list", args=[viaje.id]))
 
     return render(request, "viajes/gasto_extra_confirm_delete.html", {"viaje": viaje, "gasto": gasto})
+
 
 # -----------------------------
 # AJAX: COORDENADAS DE LOCALIDAD
@@ -242,6 +292,7 @@ def ajax_localidad_coords(request):
         return JsonResponse({"error": "Localidad sin coordenadas."}, status=422)
 
     return JsonResponse({"lat": float(loc.lat), "lng": float(loc.lng)})
+
 
 def ajax_cliente_ubicacion(request):
     """
