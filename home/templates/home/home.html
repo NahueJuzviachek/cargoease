@@ -17,20 +17,19 @@
   </div>
 
   <div class="row g-3">
+
     <!-- Card 1: Clientes más recurrentes (mensual) -->
     <div class="col-12 col-lg-6">
       <div class="card h-100 shadow-sm">
         <div class="card-body">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <div class="d-flex align-items-center gap-2">
-              <i class="bi bi-people"></i>
-              <h5 class="card-title mb-0">Clientes más recurrentes (mensual)</h5>
-            </div>
-            <div class="d-flex gap-2">
-              <input type="month" id="cliDesde" class="form-control form-control-sm" style="width: 150px;">
-              <input type="month" id="cliHasta" class="form-control form-control-sm" style="width: 150px;">
-              <button id="cliAplicar" class="btn btn-primary btn-sm">Aplicar</button>
-            </div>
+          <div class="text-center mb-3">
+            <i class="bi bi-people"></i>
+            <h5 class="card-title mb-0 d-inline-block ms-2">Clientes más recurrentes (mensual)</h5>
+          </div>
+          <div class="d-flex justify-content-center gap-2 mb-2">
+            <input type="month" id="cliDesde" class="form-control form-control-sm" style="width: 150px;">
+            <input type="month" id="cliHasta" class="form-control form-control-sm" style="width: 150px;">
+            <button id="cliAplicar" class="btn btn-primary btn-sm">Aplicar</button>
           </div>
           <div class="chart-wrap">
             <canvas id="chartClientesTopMensual" height="160"></canvas>
@@ -45,16 +44,14 @@
     <div class="col-12 col-lg-6">
       <div class="card h-100 shadow-sm">
         <div class="card-body">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <div class="d-flex align-items-center gap-2">
-              <i class="bi bi-trophy"></i>
-              <h5 class="card-title mb-0">Ranking de vehículos por km</h5>
-            </div>
-            <div class="d-flex gap-2">
-              <input type="date" id="rkDesde" class="form-control form-control-sm" style="width: 140px;">
-              <input type="date" id="rkHasta" class="form-control form-control-sm" style="width: 140px;">
-              <button id="rkAplicar" class="btn btn-primary btn-sm">Aplicar</button>
-            </div>
+          <div class="text-center mb-3">
+            <i class="bi bi-trophy"></i>
+            <h5 class="card-title mb-0 d-inline-block ms-2">Ranking de vehículos por km</h5>
+          </div>
+          <div class="d-flex justify-content-center gap-2 mb-2">
+            <input type="date" id="rkDesde" class="form-control form-control-sm" style="width: 140px;">
+            <input type="date" id="rkHasta" class="form-control form-control-sm" style="width: 140px;">
+            <button id="rkAplicar" class="btn btn-primary btn-sm">Aplicar</button>
           </div>
           <div class="chart-wrap">
             <canvas id="chartRankingKm" height="140"></canvas>
@@ -69,11 +66,11 @@
     <div class="col-12 col-lg-6">
       <div class="card h-100 shadow-sm">
         <div class="card-body">
-          <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="text-center mb-3">
             <i class="bi bi-droplet-half"></i>
-            <h5 class="card-title mb-0">Aceite – Top 5 con menos km restantes</h5>
+            <h5 class="card-title mb-0 d-inline-block ms-2">Aceite – Top 5 con menos km restantes</h5>
           </div>
-          <div class="chart-wrap">
+          <div class="chart-wrap text-center">
             <canvas id="chartAceiteTop5" height="180"></canvas>
             <div class="chart-empty d-none" id="emptyAceite">No hay registros de aceite</div>
             <div class="chart-error d-none" id="errorAceite">Error cargando datos</div>
@@ -86,11 +83,11 @@
     <div class="col-12 col-lg-6">
       <div class="card h-100 shadow-sm">
         <div class="card-body">
-          <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="text-center mb-3">
             <i class="bi bi-circle-half"></i>
-            <h5 class="card-title mb-0">Neumáticos – Estado global</h5>
+            <h5 class="card-title mb-0 d-inline-block ms-2">Neumáticos – Estado global</h5>
           </div>
-          <div class="chart-wrap">
+          <div class="chart-wrap text-center">
             <canvas id="chartNeumaticosEstado" height="180"></canvas>
             <div class="chart-empty d-none" id="emptyNeum">No hay neumáticos cargados</div>
             <div class="chart-error d-none" id="errorNeum">Error cargando datos</div>
