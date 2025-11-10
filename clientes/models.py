@@ -1,3 +1,4 @@
+# clientes/models.py
 from django.db import models
 from ubicaciones.models import Pais, Provincia, Localidad
 

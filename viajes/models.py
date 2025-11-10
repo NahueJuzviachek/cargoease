@@ -1,3 +1,4 @@
+# Viajes/nodels.py
 from decimal import Decimal
 from django.db import models, transaction
 from django.core.validators import MinValueValidator, MaxValueValidator

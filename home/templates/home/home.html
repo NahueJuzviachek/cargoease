@@ -13,7 +13,7 @@
 
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Panel General – Flota</h2>
+    <h2 class="mb-0">Panel General</h2>
   </div>
 
   <div class="row g-3">
@@ -27,9 +27,9 @@
               <i class="bi bi-people"></i>
               <h5 class="card-title mb-0 d-inline-block ms-2">Clientes más recurrentes (mensual)</h5>
             </div>
-            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
-              data-bs-target="#reporteClientesModal">
-              Generar reporte
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+              data-bs-target="#modalFecha">
+              Generar Reporte
             </button>
           </div>
 
@@ -54,7 +54,7 @@
         <div class="card-body">
           <div class="text-center mb-3">
             <i class="bi bi-trophy"></i>
-            <h5 class="card-title mb-0 d-inline-block ms-2">Ranking de vehículos por km</h5>
+            <h5 class="card-title mb-0 d-inline-block ms-2">Ranking de vehículos por kilómetros</h5>
           </div>
           <div class="d-flex justify-content-center gap-2 mb-2">
             <input type="date" id="rkDesde" class="form-control form-control-sm" style="width: 140px;">
@@ -76,7 +76,7 @@
         <div class="card-body">
           <div class="text-center mb-3">
             <i class="bi bi-droplet-half"></i>
-            <h5 class="card-title mb-0 d-inline-block ms-2">Aceite – Top 5 con menos km restantes</h5>
+            <h5 class="card-title mb-0 d-inline-block ms-2">Aceite – Top 5 con menos Km. restantes</h5>
           </div>
           <div class="chart-wrap text-center">
             <canvas id="chartAceiteTop5" height="180"></canvas>
@@ -118,8 +118,37 @@
     {% endif %}
   </div>
 </div>
+
+{# Modal fijo para generar reporte de clientes - IDs concretos #}
+<div class="modal fade" id="modalFecha" tabindex="-1" aria-labelledby="modalFechaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalFechaLabel">Seleccionar rango de fechas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="reporteClientesForm" method="post" action="{% url 'generar_reporte_clientes' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="cliDesdeModal" class="form-label">Desde</label>
+            <input type="month" class="form-control" id="cliDesdeModal" name="desde" required>
+          </div>
+          <div class="mb-3">
+            <label for="cliHastaModal" class="form-label">Hasta</label>
+            <input type="month" class="form-control" id="cliHastaModal" name="hasta" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary" form="reporteClientesForm">Generar Reporte</button>
+      </div>
+    </div>
+  </div>
 </div>
-{% endblock %}
+
+{% endblock content %}
 
 {% block scripts %}
 <script src="{% static 'home/js/dashboard.js' %}?v=20251023"></script>

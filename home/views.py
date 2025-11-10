@@ -1,8 +1,11 @@
+# home/views.py
 from datetime import datetime, timedelta, date, time as dtime
 from calendar import month_name, monthrange
 from collections import defaultdict
 from django.utils.dateparse import parse_date
-
+from django.http import HttpResponse
+import calendar
+import csv
 from django.db.models import (
     Sum, F, Value, CharField, Case, When, Count,
     DecimalField, ExpressionWrapper
@@ -12,17 +15,32 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.http import require_GET
-
+from io import BytesIO
 from viajes.models import Viaje
 from vehiculos.models import Vehiculo
 from aceite.models import Aceite
 from neumaticos.models import Neumatico
 
-# Importa Cliente solo si existe (previene errores si la app clientes no está instalada)
+# Importa Cliente solo si existe
 try:
     from clientes.models import Cliente
 except Exception:
     Cliente = None
+
+try:
+    import openpyxl
+    from openpyxl.utils import get_column_letter
+except Exception:
+    openpyxl = None
+
+try:
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet
+except Exception:
+    # reportlab puede no estar instalado
+    SimpleDocTemplate = None
 
 
 # =========================
@@ -299,16 +317,239 @@ def data_neumaticos_estado(request):
     return JsonResponse({"labels": labels, "values": values})
 
 def reporte_clientes_view(request):
-    desde = request.GET.get('desde')
-    hasta = request.GET.get('hasta')
-    # Convertimos a fecha si es necesario
-    desde_date = parse_date(desde)
-    hasta_date = parse_date(hasta)
-    # Lógica de generar el reporte
-    clientes = []  # aquí iría tu query
+    """
+    Genera el reporte de clientes dentro de un rango mensual (YYYY-MM).
+    Soporta:
+      - HTML (por defecto)
+      - CSV  -> ?format=csv
+      - Excel (xlsx) -> ?export=excel
+      - PDF  -> ?export=pdf
+
+    Parámetros:
+      - desde: 'YYYY-MM'
+      - hasta: 'YYYY-MM'
+    """
+    # leer params (GET o POST)
+    data = request.GET if request.method == "GET" else request.POST
+    desde_m = data.get("desde")
+    hasta_m = data.get("hasta")
+
+    # parseo 'YYYY-MM' a fechas
+    def month_to_range(ym: str):
+        if not ym or "-" not in ym:
+            return None, None
+        try:
+            y, m = ym.split("-")
+            y = int(y); m = int(m)
+            first_day = date(y, m, 1)
+            last_day = date(y, m, calendar.monthrange(y, m)[1])
+            return first_day, last_day
+        except Exception:
+            return None, None
+
+    desde_date, _ = month_to_range(desde_m)
+    _, hasta_date = month_to_range(hasta_m)
+
+    # Si no vienen fechas, valor por defecto: últimos 6 meses
+    hoy = date.today()
+    if not desde_date or not hasta_date:
+        y2, m2 = hoy.year, hoy.month
+        last_day = calendar.monthrange(y2, m2)[1]
+        hasta_date = date(y2, m2, last_day)
+        m_back = m2 - 5
+        y_back = y2
+        while m_back <= 0:
+            m_back += 12
+            y_back -= 1
+        desde_date = date(y_back, m_back, 1)
+
+    # queryset base
+    qs = Viaje.objects.filter(cliente_id__isnull=False)
+    # filtro fechas usando tu helper si lo tenés; si no, filter directo:
+    try:
+        # usa tu helper si existe
+        qs = _filtrar_por_fecha_viaje(qs, desde_date, hasta_date)
+    except Exception:
+        # fallback
+        qs = qs.filter(fecha__date__range=(desde_date, hasta_date))
+
+    # --- Top clientes por ingresos (sum valor_flete) ---
+    clientes_ingresos_qs = (
+        qs.values("cliente__id", "cliente__nombre", "cliente__correo")
+          .annotate(
+              total_ingresos=Coalesce(
+                  Sum("valor_flete", output_field=DecimalField(max_digits=18, decimal_places=2)),
+                  Value(0, output_field=DecimalField(max_digits=18, decimal_places=2))
+              )
+          )
+          .order_by("-total_ingresos")
+    )
+
+    # --- Top clientes por cantidad de viajes ---
+    clientes_viajes_qs = (
+        qs.values("cliente__id", "cliente__nombre", "cliente__correo")
+          .annotate(total_viajes=Count("id"))
+          .order_by("-total_viajes")
+    )
+
+    # Convertir a listas (útil para export)
+    ingresos = list(clientes_ingresos_qs)
+    viajes = list(clientes_viajes_qs)
+
+    # Parámetros de export
+    formato_csv = data.get("format", "").lower() == "csv"
+    export_excel = data.get("export", "").lower() == "excel"
+    export_pdf = data.get("export", "").lower() == "pdf"
+
+    # ------------------------
+    # CSV (descarga)
+    # ------------------------
+    if formato_csv:
+        filename = f"reporte_clientes_{desde_date.strftime('%Y%m')}_{hasta_date.strftime('%Y%m')}.csv"
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        writer = csv.writer(response)
+
+        writer.writerow([f"Reporte de Clientes: {desde_date} a {hasta_date}"])
+        writer.writerow([])
+        writer.writerow(["Top por Ingresos"])
+        writer.writerow(["cliente_id", "nombre", "correo", "total_ingresos"])
+        for r in ingresos:
+            writer.writerow([
+                r.get("cliente__id"),
+                r.get("cliente__nombre") or "",
+                r.get("cliente__correo") or "",
+                f"{float(r.get('total_ingresos') or 0):.2f}"
+            ])
+
+        writer.writerow([])
+        writer.writerow(["Top por Cantidad de Viajes"])
+        writer.writerow(["cliente_id", "nombre", "correo", "total_viajes"])
+        for r in viajes:
+            writer.writerow([
+                r.get("cliente__id"),
+                r.get("cliente__nombre") or "",
+                r.get("cliente__correo") or "",
+                int(r.get("total_viajes") or 0)
+            ])
+
+        return response
+
+    # ------------------------
+    # EXCEL (.xlsx)
+    # ------------------------
+    if export_excel:
+        if openpyxl is None:
+            return HttpResponse("openpyxl no está instalado. Instalar con `pip install openpyxl`", status=500)
+
+        wb = openpyxl.Workbook()
+        # Hoja 1: Ingresos
+        ws1 = wb.active
+        ws1.title = "Ingresos"
+        headers1 = ["cliente_id", "nombre", "correo", "total_ingresos"]
+        ws1.append(["Reporte de Clientes", f"{desde_date} → {hasta_date}"])
+        ws1.append([])
+        ws1.append(headers1)
+        for r in ingresos:
+            ws1.append([
+                r.get("cliente__id"),
+                r.get("cliente__nombre") or "",
+                r.get("cliente__correo") or "",
+                float(r.get("total_ingresos") or 0),
+            ])
+        # Ajustar ancho columnas
+        for i, col in enumerate(headers1, 1):
+            ws1.column_dimensions[get_column_letter(i)].width = max(12, len(col) + 2)
+
+        # Hoja 2: Viajes
+        ws2 = wb.create_sheet(title="Cantidad de Viajes")
+        headers2 = ["cliente_id", "nombre", "correo", "total_viajes"]
+        ws2.append(["Top por Cantidad de Viajes"])
+        ws2.append([])
+        ws2.append(headers2)
+        for r in viajes:
+            ws2.append([
+                r.get("cliente__id"),
+                r.get("cliente__nombre") or "",
+                r.get("cliente__correo") or "",
+                int(r.get("total_viajes") or 0),
+            ])
+        for i, col in enumerate(headers2, 1):
+            ws2.column_dimensions[get_column_letter(i)].width = max(12, len(col) + 2)
+
+        # Guardar en memoria y devolver
+        stream = BytesIO()
+        wb.save(stream)
+        stream.seek(0)
+        filename = f"reporte_clientes_{desde_date.strftime('%Y%m')}_{hasta_date.strftime('%Y%m')}.xlsx"
+        response = HttpResponse(stream.read(),
+                                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+    # ------------------------
+    # PDF (reportlab)
+    # ------------------------
+    if export_pdf:
+        if SimpleDocTemplate is None:
+            return HttpResponse("reportlab no está instalado. Instalar con `pip install reportlab`", status=500)
+
+        buffer = BytesIO()
+        # Documento en horizontal para tablas largas
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph(f"Reporte de Clientes: {desde_date} → {hasta_date}", styles["Title"]))
+        elements.append(Spacer(1, 12))
+
+        # Tabla 1: Ingresos
+        data_ing = [["#", "Cliente", "Correo", "Total Ingresos"]]
+        for i, r in enumerate(ingresos, start=1):
+            data_ing.append([i, r.get("cliente__nombre") or "", r.get("cliente__correo") or "", f"{float(r.get('total_ingresos') or 0):.2f}"])
+
+        t1 = Table(data_ing, colWidths=[30, 200, 220, 100])
+        t1.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2d6a4f")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("ALIGN", (-1, 1), (-1, -1), "RIGHT"),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ]))
+        elements.append(t1)
+        elements.append(Spacer(1, 18))
+
+        # Tabla 2: Viajes
+        data_via = [["#", "Cliente", "Correo", "Total Viajes"]]
+        for i, r in enumerate(viajes, start=1):
+            data_via.append([i, r.get("cliente__nombre") or "", r.get("cliente__correo") or "", int(r.get("total_viajes") or 0)])
+
+        t2 = Table(data_via, colWidths=[30, 200, 220, 80])
+        t2.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#114b8b")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("ALIGN", (-1, 1), (-1, -1), "RIGHT"),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ]))
+        elements.append(t2)
+
+        doc.build(elements)
+        buffer.seek(0)
+        filename = f"reporte_clientes_{desde_date.strftime('%Y%m')}_{hasta_date.strftime('%Y%m')}.pdf"
+        return HttpResponse(buffer.read(), content_type="application/pdf", headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        })
+
+    # ------------------------
+    # Si no piden export, render HTML
+    # ------------------------
     context = {
-        'clientes': clientes,
-        'desde': desde_date,
-        'hasta': hasta_date,
+        "clientes_ingresos": clientes_ingresos_qs,
+        "clientes_viajes": clientes_viajes_qs,
+        "desde": desde_date,
+        "hasta": hasta_date,
     }
-    return render(request, 'home/reporte_clientes.html', context)
+    return render(request, "home/reporte_clientes.html", context)
