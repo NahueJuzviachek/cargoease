@@ -52,9 +52,14 @@
     <div class="col-12 col-lg-6">
       <div class="card h-100 shadow-sm">
         <div class="card-body">
-          <div class="text-center mb-3">
-            <i class="bi bi-trophy"></i>
-            <h5 class="card-title mb-0 d-inline-block ms-2">Ranking de vehículos por kilómetros</h5>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="text-center">
+              <i class="bi bi-trophy"></i>
+              <h5 class="card-title mb-0 d-inline-block ms-2">Ranking de vehículos por kilómetros</h5>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalVehiculos">
+              Generar reporte
+            </button>
           </div>
           <div class="d-flex justify-content-center gap-2 mb-2">
             <input type="date" id="rkDesde" class="form-control form-control-sm" style="width: 140px;">
@@ -119,12 +124,13 @@
   </div>
 </div>
 
-{# Modal fijo para generar reporte de clientes - IDs concretos #}
+
+<!-- Modal: Reporte de clientes -->
 <div class="modal fade" id="modalFecha" tabindex="-1" aria-labelledby="modalFechaLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalFechaLabel">Seleccionar rango de fechas</h5>
+        <h5 class="modal-title" id="modalFechaLabel">Seleccionar rango de fechas (Mensual)</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
@@ -148,6 +154,34 @@
   </div>
 </div>
 
+<!-- Modal: Reporte de vehículos -->
+<div class="modal fade" id="modalVehiculos" tabindex="-1" aria-labelledby="modalVehiculosLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalVehiculosLabel">Seleccionar rango de fechas (Mensual)</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="reporteVehiculosForm" method="post" action="{% url 'reporte_vehiculos' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="vehDesdeModal" class="form-label">Desde</label>
+            <input type="month" class="form-control" id="vehDesdeModal" name="desde" required>
+          </div>
+          <div class="mb-3">
+            <label for="vehHastaModal" class="form-label">Hasta</label>
+            <input type="month" class="form-control" id="vehHastaModal" name="hasta" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary" form="reporteVehiculosForm">Generar Reporte</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock content %}
 
 {% block scripts %}

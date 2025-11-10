@@ -97,7 +97,7 @@
             <button type="submit" class="btn btn-outline-secondary btn-sm">CSV</button>
         </form>
 
-        {# Exportar a Excel (si implementás export en la vista) #}
+        {# Exportar a Excel #}
         <form action="{% url 'generar_reporte_clientes' %}" method="get" target="_blank" class="d-inline">
             <input type="hidden" name="desde" value="{{ desde|date:'Y-m' }}">
             <input type="hidden" name="hasta" value="{{ hasta|date:'Y-m' }}">
@@ -105,7 +105,7 @@
             <button type="submit" class="btn btn-outline-success btn-sm">Excel</button>
         </form>
 
-        {# Exportar a PDF (si implementás export en la vista) #}
+        {# Exportar a PDF #}
         <form action="{% url 'generar_reporte_clientes' %}" method="get" target="_blank" class="d-inline">
             <input type="hidden" name="desde" value="{{ desde|date:'Y-m' }}">
             <input type="hidden" name="hasta" value="{{ hasta|date:'Y-m' }}">

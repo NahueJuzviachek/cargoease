@@ -1,0 +1,107 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Reporte de Vehículos</h3>
+        <a href="{% url 'home' %}" class="btn btn-secondary btn-sm">Volver</a>
+    </div>
+
+    <p class="text-muted">Período: <strong>{{ desde|date:"F Y" }} → {{ hasta|date:"F Y" }}</strong></p>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">Vehículos por km recorridos</div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Vehículo</th>
+                                <th class="text-end">Km</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for v in km_ranking %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ v.vehiculo__dominio }}</td>
+                                <td class="text-end">{{ v.total_km|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">Sin datos</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">Vehículos por cantidad de viajes</div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Vehículo</th>
+                                <th class="text-end">Viajes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for v in viajes_ranking %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ v.vehiculo__dominio }}</td>
+                                <td class="text-end">{{ v.total_viajes }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">Sin datos</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end mt-3">
+        {# CSV #}
+        <form action="{% url 'reporte_vehiculos' %}" method="get" target="_blank" class="d-inline">
+            <input type="hidden" name="desde" value="{{ desde|date:'Y-m' }}">
+            <input type="hidden" name="hasta" value="{{ hasta|date:'Y-m' }}">
+            <input type="hidden" name="format" value="csv">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                CSV
+            </button>
+        </form>
+
+        {# Excel (.xlsx) #}
+        <form action="{% url 'reporte_vehiculos' %}" method="get" target="_blank" class="d-inline">
+            <input type="hidden" name="desde" value="{{ desde|date:'Y-m' }}">
+            <input type="hidden" name="hasta" value="{{ hasta|date:'Y-m' }}">
+            <input type="hidden" name="export" value="excel">
+            <button type="submit" class="btn btn-outline-success btn-sm">
+                Excel
+            </button>
+        </form>
+
+        {# PDF #}
+        <form action="{% url 'reporte_vehiculos' %}" method="get" target="_blank" class="d-inline">
+            <input type="hidden" name="desde" value="{{ desde|date:'Y-m' }}">
+            <input type="hidden" name="hasta" value="{{ hasta|date:'Y-m' }}">
+            <input type="hidden" name="export" value="pdf">
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+                PDF
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

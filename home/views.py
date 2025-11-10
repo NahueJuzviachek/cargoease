@@ -553,3 +553,205 @@ def reporte_clientes_view(request):
         "hasta": hasta_date,
     }
     return render(request, "home/reporte_clientes.html", context)
+
+def reporte_vehiculos_view(request):
+    """
+    Reporte de vehículos entre meses (YYYY-MM).
+    - HTML por defecto
+    - CSV  -> ?format=csv
+    - Excel -> ?export=excel
+    - PDF  -> ?export=pdf
+
+    Muestra:
+      - Vehículos con más km recorridos (desc)
+      - Vehículos con más viajes (desc)
+    """
+    data = request.GET if request.method == "GET" else request.POST
+    desde_m = data.get("desde")
+    hasta_m = data.get("hasta")
+
+    def month_to_range(ym: str):
+        if not ym or "-" not in ym:
+            return None, None
+        try:
+            y, m = ym.split("-")
+            y = int(y); m = int(m)
+            first_day = date(y, m, 1)
+            last_day = date(y, m, calendar.monthrange(y, m)[1])
+            return first_day, last_day
+        except Exception:
+            return None, None
+
+    desde_date, _ = month_to_range(desde_m)
+    _, hasta_date = month_to_range(hasta_m)
+
+    # Si no vienen fechas, por defecto últimos 6 meses
+    hoy = date.today()
+    if not desde_date or not hasta_date:
+        y2, m2 = hoy.year, hoy.month
+        last_day = calendar.monthrange(y2, m2)[1]
+        hasta_date = date(y2, m2, last_day)
+        m_back = m2 - 5
+        y_back = y2
+        while m_back <= 0:
+            m_back += 12
+            y_back -= 1
+        desde_date = date(y_back, m_back, 1)
+
+    qs = Viaje.objects.select_related("vehiculo").all()
+    try:
+        qs = _filtrar_por_fecha_viaje(qs, desde_date, hasta_date)
+    except Exception:
+        qs = qs.filter(fecha__date__range=(desde_date, hasta_date))
+
+    # 1) Vehículos con más km recorridos
+    km_qs = (
+        qs.values("vehiculo__id", "vehiculo__dominio")
+          .annotate(
+              total_km=Coalesce(
+                  Sum("distancia", output_field=DecimalField(max_digits=18, decimal_places=2)),
+                  Value(0, output_field=DecimalField(max_digits=18, decimal_places=2))
+              )
+          )
+          .order_by("-total_km")
+    )
+
+    # 2) Vehículos con más viajes
+    viajes_qs = (
+        qs.values("vehiculo__id", "vehiculo__dominio")
+          .annotate(total_viajes=Count("id"))
+          .order_by("-total_viajes")
+    )
+
+    # Materializar listas (útil para export)
+    ingresos_list = list(km_qs)
+    viajes_list = list(viajes_qs)
+
+    # Detectar petición de export
+    formato_csv = data.get("format", "").lower() == "csv"
+    export_excel = data.get("export", "").lower() == "excel"
+    export_pdf = data.get("export", "").lower() == "pdf"
+
+    # ------------------------
+    # CSV
+    # ------------------------
+    if formato_csv:
+        filename = f"reporte_vehiculos_{desde_date.strftime('%Y%m')}_{hasta_date.strftime('%Y%m')}.csv"
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        writer = csv.writer(response)
+        writer.writerow([f"Reporte Vehículos: {desde_date} → {hasta_date}"])
+        writer.writerow([])
+        writer.writerow(["Top por km"])
+        writer.writerow(["vehiculo_id", "dominio", "total_km"])
+        for r in ingresos_list:
+            writer.writerow([r.get("vehiculo__id"), r.get("vehiculo__dominio") or "", float(r.get("total_km") or 0)])
+        writer.writerow([])
+        writer.writerow(["Top por cantidad de viajes"])
+        writer.writerow(["vehiculo_id", "dominio", "total_viajes"])
+        for r in viajes_list:
+            writer.writerow([r.get("vehiculo__id"), r.get("vehiculo__dominio") or "", int(r.get("total_viajes") or 0)])
+        return response
+
+    # ------------------------
+    # EXCEL (.xlsx) con openpyxl
+    # ------------------------
+    if export_excel:
+        if openpyxl is None:
+            return HttpResponse("openpyxl no está instalado. Instalar con `pip install openpyxl`", status=500)
+
+        wb = openpyxl.Workbook()
+        ws1 = wb.active
+        ws1.title = "Km recorridos"
+        # Cabecera y datos km
+        ws1.append(["Reporte Vehículos", f"{desde_date} → {hasta_date}"])
+        ws1.append([])
+        headers_km = ["#", "vehiculo_id", "dominio", "total_km"]
+        ws1.append(headers_km)
+        for i, r in enumerate(ingresos_list, start=1):
+            ws1.append([i, r.get("vehiculo__id"), r.get("vehiculo__dominio") or "", float(r.get("total_km") or 0)])
+        # Ajuste ancho de columnas
+        for idx, col in enumerate(headers_km, 1):
+            ws1.column_dimensions[get_column_letter(idx)].width = max(12, len(col) + 2)
+
+        # Hoja 2: viajes
+        ws2 = wb.create_sheet(title="Cantidad de Viajes")
+        ws2.append(["Top por Cantidad de Viajes"])
+        ws2.append([])
+        headers_v = ["#", "vehiculo_id", "dominio", "total_viajes"]
+        ws2.append(headers_v)
+        for i, r in enumerate(viajes_list, start=1):
+            ws2.append([i, r.get("vehiculo__id"), r.get("vehiculo__dominio") or "", int(r.get("total_viajes") or 0)])
+        for idx, col in enumerate(headers_v, 1):
+            ws2.column_dimensions[get_column_letter(idx)].width = max(12, len(col) + 2)
+
+        stream = BytesIO()
+        wb.save(stream)
+        stream.seek(0)
+        filename = f"reporte_vehiculos_{desde_date.strftime('%Y%m')}_{hasta_date.strftime('%Y%m')}.xlsx"
+        response = HttpResponse(stream.read(),
+                                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+    # ------------------------
+    # PDF (reportlab)
+    # ------------------------
+    if export_pdf:
+        if SimpleDocTemplate is None:
+            return HttpResponse("reportlab no está instalado. Instalar con `pip install reportlab`", status=500)
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph(f"Reporte de Vehículos: {desde_date} → {hasta_date}", styles["Title"]))
+        elements.append(Spacer(1, 12))
+
+        # Tabla 1: km
+        data_km = [["#", "Vehículo", "Dominio", "Total Km"]]
+        for i, r in enumerate(ingresos_list, start=1):
+            data_km.append([i, r.get("vehiculo__id"), r.get("vehiculo__dominio") or "", f"{float(r.get('total_km') or 0):.2f}"])
+        t1 = Table(data_km, colWidths=[30, 60, 200, 100])
+        t1.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2d6a4f")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("ALIGN", (-1, 1), (-1, -1), "RIGHT"),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ]))
+        elements.append(t1)
+        elements.append(Spacer(1, 18))
+
+        # Tabla 2: viajes
+        data_v = [["#", "Vehículo", "Dominio", "Total Viajes"]]
+        for i, r in enumerate(viajes_list, start=1):
+            data_v.append([i, r.get("vehiculo__id"), r.get("vehiculo__dominio") or "", int(r.get("total_viajes") or 0)])
+        t2 = Table(data_v, colWidths=[30, 60, 200, 80])
+        t2.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#114b8b")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("ALIGN", (-1, 1), (-1, -1), "RIGHT"),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ]))
+        elements.append(t2)
+
+        doc.build(elements)
+        buffer.seek(0)
+        filename = f"reporte_vehiculos_{desde_date.strftime('%Y%m')}_{hasta_date.strftime('%Y%m')}.pdf"
+        return HttpResponse(buffer.read(), content_type="application/pdf", headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        })
+
+    # Render HTML por defecto
+    context = {
+        "km_ranking": km_qs,
+        "viajes_ranking": viajes_qs,
+        "desde": desde_date,
+        "hasta": hasta_date,
+    }
+    return render(request, "home/reporte_vehiculos.html", context)

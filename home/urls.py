@@ -14,4 +14,5 @@ urlpatterns = [
     
     # Botones de reportes
     path('reporte/clientes/', views.reporte_clientes_view, name='generar_reporte_clientes'),
+    path('reporte/vehiculos/', views.reporte_vehiculos_view, name='reporte_vehiculos'),
 ]
