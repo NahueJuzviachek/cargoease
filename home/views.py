@@ -1,46 +1,65 @@
-# home/views.py
-from datetime import datetime, timedelta, date, time as dtime
-from calendar import month_name, monthrange
-from collections import defaultdict
-from django.utils.dateparse import parse_date
-from django.http import HttpResponse
-import calendar
+import os
 import csv
+import calendar
+from io import BytesIO
+from datetime import datetime, timedelta, date, time as dtime
+from collections import defaultdict
+from calendar import month_name, monthrange
+
+# Django
+from django.conf import settings
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
+from django.utils.dateparse import parse_date
+from django.views.decorators.http import require_GET
+
+# ORM / Query helpers
 from django.db.models import (
     Sum, F, Value, CharField, Case, When, Count,
     DecimalField, ExpressionWrapper
 )
 from django.db.models.functions import Coalesce, Concat, TruncMonth
-from django.http import JsonResponse
-from django.shortcuts import render
-from django.utils import timezone
-from django.views.decorators.http import require_GET
-from io import BytesIO
+
+# Models (app-local)
 from viajes.models import Viaje
 from vehiculos.models import Vehiculo
 from aceite.models import Aceite
 from neumaticos.models import Neumatico
 
-# Importa Cliente solo si existe
+# Cliente (opcional - carga segura)
 try:
     from clientes.models import Cliente
 except Exception:
     Cliente = None
 
+# Optional libs (Excel)
 try:
     import openpyxl
     from openpyxl.utils import get_column_letter
 except Exception:
     openpyxl = None
+    get_column_letter = None
 
+# Optional libs (PDF / reportlab)
 try:
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib import colors
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
     from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.utils import ImageReader
 except Exception:
-    # reportlab puede no estar instalado
+    # reportlab no está disponible; marcamos names como None para chequear más abajo
     SimpleDocTemplate = None
+    A4 = None
+    landscape = None
+    colors = None
+    Table = None
+    TableStyle = None
+    Paragraph = None
+    Spacer = None
+    getSampleStyleSheet = None
+    ImageReader = None
 
 
 # =========================
@@ -329,6 +348,8 @@ def reporte_clientes_view(request):
       - desde: 'YYYY-MM'
       - hasta: 'YYYY-MM'
     """
+
+
     # leer params (GET o POST)
     data = request.GET if request.method == "GET" else request.POST
     desde_m = data.get("desde")
@@ -365,12 +386,10 @@ def reporte_clientes_view(request):
 
     # queryset base
     qs = Viaje.objects.filter(cliente_id__isnull=False)
-    # filtro fechas usando tu helper si lo tenés; si no, filter directo:
+    # filtro fechas usando helper
     try:
-        # usa tu helper si existe
         qs = _filtrar_por_fecha_viaje(qs, desde_date, hasta_date)
     except Exception:
-        # fallback
         qs = qs.filter(fecha__date__range=(desde_date, hasta_date))
 
     # --- Top clientes por ingresos (sum valor_flete) ---
@@ -410,7 +429,7 @@ def reporte_clientes_view(request):
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         writer = csv.writer(response)
 
-        writer.writerow([f"Reporte de Clientes: {desde_date} a {hasta_date}"])
+        writer.writerow([f"Periodo de fechas: {desde_date} a {hasta_date}"])
         writer.writerow([])
         writer.writerow(["Top por Ingresos"])
         writer.writerow(["cliente_id", "nombre", "correo", "total_ingresos"])
@@ -459,7 +478,10 @@ def reporte_clientes_view(request):
             ])
         # Ajustar ancho columnas
         for i, col in enumerate(headers1, 1):
-            ws1.column_dimensions[get_column_letter(i)].width = max(12, len(col) + 2)
+            try:
+                ws1.column_dimensions[get_column_letter(i)].width = max(12, len(col) + 2)
+            except Exception:
+                pass
 
         # Hoja 2: Viajes
         ws2 = wb.create_sheet(title="Cantidad de Viajes")
@@ -475,7 +497,10 @@ def reporte_clientes_view(request):
                 int(r.get("total_viajes") or 0),
             ])
         for i, col in enumerate(headers2, 1):
-            ws2.column_dimensions[get_column_letter(i)].width = max(12, len(col) + 2)
+            try:
+                ws2.column_dimensions[get_column_letter(i)].width = max(12, len(col) + 2)
+            except Exception:
+                pass
 
         # Guardar en memoria y devolver
         stream = BytesIO()
@@ -488,19 +513,24 @@ def reporte_clientes_view(request):
         return response
 
     # ------------------------
-    # PDF (reportlab)
+    # PDF (reportlab) — con logo en header y copyright en footer
     # ------------------------
     if export_pdf:
         if SimpleDocTemplate is None:
             return HttpResponse("reportlab no está instalado. Instalar con `pip install reportlab`", status=500)
 
         buffer = BytesIO()
-        # Documento en horizontal para tablas largas
-        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
+        pagesize = landscape(A4)
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=pagesize,
+            rightMargin=20, leftMargin=20, topMargin=40, bottomMargin=40
+        )
         styles = getSampleStyleSheet()
         elements = []
 
-        elements.append(Paragraph(f"Reporte de Clientes: {desde_date} → {hasta_date}", styles["Title"]))
+        # título en flujo (aunque el header real se dibuja con canvas)
+        elements.append(Paragraph(f"Periodo de fechas: {desde_date} → {hasta_date}", styles["Title"]))
         elements.append(Spacer(1, 12))
 
         # Tabla 1: Ingresos
@@ -536,7 +566,64 @@ def reporte_clientes_view(request):
         ]))
         elements.append(t2)
 
-        doc.build(elements)
+        # --- funciones para dibujar encabezado y pie en cada página ---
+        def _header_footer(canvas_obj, doc_obj):
+            """
+            Dibuja logo a la derecha en el encabezado y copyright centrado en el pie.
+            Se ejecuta en cada página (onFirstPage y onLaterPages).
+            """
+            canvas_obj.saveState()
+            page_width, page_height = doc_obj.pagesize
+
+            # --- LOGO (derecha) ---
+            try:
+                logo_rel_path = os.path.join("home", "static", "home", "img", "logo.png")
+                logo_abs = os.path.join(settings.BASE_DIR, logo_rel_path)
+                if not os.path.exists(logo_abs):
+                    # intentar ruta alternativa (si static está en otra carpeta)
+                    logo_abs = os.path.join(settings.BASE_DIR, "static", "home", "img", "logo.png")
+                if os.path.exists(logo_abs) and ImageReader is not None:
+                    # tamaño del logo (ajustar si hace falta)
+                    logo_w = 80
+                    logo_h = 35
+                    x = page_width - doc_obj.rightMargin - logo_w
+                    y = page_height - doc_obj.topMargin + 10  # un poco por encima del topMargin
+                    img = ImageReader(logo_abs)
+                    canvas_obj.drawImage(img, x, y, width=logo_w, height=logo_h, mask='auto', preserveAspectRatio=True)
+            except Exception:
+                pass
+
+            # --- TITULO en encabezado (centrado, encima del contenido) ---
+            try:
+                canvas_obj.setFont("Helvetica-Bold", 14)
+                header_title = "CargoEase — Reporte de Clientes"
+                canvas_obj.drawCentredString(page_width / 2, page_height - doc_obj.topMargin + 12, header_title)
+            except Exception:
+                pass
+
+            # --- línea divisoria bajo el encabezado ---
+            try:
+                line_y = page_height - doc_obj.topMargin
+                canvas_obj.setLineWidth(0.5)
+                canvas_obj.setStrokeColor(colors.grey)
+                canvas_obj.line(doc_obj.leftMargin, line_y, page_width - doc_obj.rightMargin, line_y)
+            except Exception:
+                pass
+
+            # --- PIE DE PÁGINA (copyright) ---
+            try:
+                footer_text = "© CargoEase"
+                canvas_obj.setFont("Helvetica-Oblique", 12)
+                footer_y = doc_obj.bottomMargin / 2.0
+                canvas_obj.drawCentredString(page_width / 2, footer_y, footer_text)
+            except Exception:
+                pass
+
+            canvas_obj.restoreState()
+
+        # Construir documento aplicando header/footer en cada página
+        doc.build(elements, onFirstPage=_header_footer, onLaterPages=_header_footer)
+
         buffer.seek(0)
         filename = f"reporte_clientes_{desde_date.strftime('%Y%m')}_{hasta_date.strftime('%Y%m')}.pdf"
         return HttpResponse(buffer.read(), content_type="application/pdf", headers={
@@ -566,6 +653,8 @@ def reporte_vehiculos_view(request):
       - Vehículos con más km recorridos (desc)
       - Vehículos con más viajes (desc)
     """
+
+
     data = request.GET if request.method == "GET" else request.POST
     desde_m = data.get("desde")
     hasta_m = data.get("hasta")
@@ -672,7 +761,10 @@ def reporte_vehiculos_view(request):
             ws1.append([i, r.get("vehiculo__id"), r.get("vehiculo__dominio") or "", float(r.get("total_km") or 0)])
         # Ajuste ancho de columnas
         for idx, col in enumerate(headers_km, 1):
-            ws1.column_dimensions[get_column_letter(idx)].width = max(12, len(col) + 2)
+            try:
+                ws1.column_dimensions[get_column_letter(idx)].width = max(12, len(col) + 2)
+            except Exception:
+                pass
 
         # Hoja 2: viajes
         ws2 = wb.create_sheet(title="Cantidad de Viajes")
@@ -683,7 +775,10 @@ def reporte_vehiculos_view(request):
         for i, r in enumerate(viajes_list, start=1):
             ws2.append([i, r.get("vehiculo__id"), r.get("vehiculo__dominio") or "", int(r.get("total_viajes") or 0)])
         for idx, col in enumerate(headers_v, 1):
-            ws2.column_dimensions[get_column_letter(idx)].width = max(12, len(col) + 2)
+            try:
+                ws2.column_dimensions[get_column_letter(idx)].width = max(12, len(col) + 2)
+            except Exception:
+                pass
 
         stream = BytesIO()
         wb.save(stream)
@@ -695,18 +790,24 @@ def reporte_vehiculos_view(request):
         return response
 
     # ------------------------
-    # PDF (reportlab)
+    # PDF (reportlab) — con logo en header y copyright en footer
     # ------------------------
     if export_pdf:
         if SimpleDocTemplate is None:
             return HttpResponse("reportlab no está instalado. Instalar con `pip install reportlab`", status=500)
 
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20)
+        pagesize = landscape(A4)
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=pagesize,
+            rightMargin=20, leftMargin=20, topMargin=40, bottomMargin=40
+        )
         styles = getSampleStyleSheet()
         elements = []
 
-        elements.append(Paragraph(f"Reporte de Vehículos: {desde_date} → {hasta_date}", styles["Title"]))
+        # --- contenido principal (tablas) ---
+        elements.append(Paragraph(f"Rango de fechas: {desde_date} → {hasta_date}", styles["Title"]))
         elements.append(Spacer(1, 12))
 
         # Tabla 1: km
@@ -740,7 +841,65 @@ def reporte_vehiculos_view(request):
         ]))
         elements.append(t2)
 
-        doc.build(elements)
+        # --- funciones para dibujar encabezado y pie en cada página ---
+        def _header_footer(canvas_obj, doc_obj):
+            """
+            Dibuja logo a la derecha en el encabezado y copyright centrado en el pie.
+            Se ejecuta en cada página (onFirstPage y onLaterPages).
+            """
+            canvas_obj.saveState()
+            page_width, page_height = doc_obj.pagesize
+
+            # --- LOGO (derecha) ---
+            try:
+                logo_rel_path = os.path.join("home", "static", "home", "img", "logo.png")
+                logo_abs = os.path.join(settings.BASE_DIR, logo_rel_path)
+                if not os.path.exists(logo_abs):
+                    # intentar ruta alternativa (si static está en otra carpeta)
+                    logo_abs = os.path.join(settings.BASE_DIR, "static", "home", "img", "logo.png")
+                if os.path.exists(logo_abs) and ImageReader is not None:
+                    # tamaño del logo (ajustar si hace falta)
+                    logo_w = 80
+                    logo_h = 35
+                    x = page_width - doc_obj.rightMargin - logo_w
+                    y = page_height - doc_obj.topMargin + 10  # un poco por encima del topMargin
+                    img = ImageReader(logo_abs)
+                    canvas_obj.drawImage(img, x, y, width=logo_w, height=logo_h, mask='auto', preserveAspectRatio=True)
+            except Exception:
+                # no fallamos la generación por la imagen
+                pass
+
+            # --- TITULO en encabezado (centrado, encima del contenido) ---
+            try:
+                canvas_obj.setFont("Helvetica-Bold", 14)
+                header_title = "CargoEase — Reporte de Vehículos"
+                canvas_obj.drawCentredString(page_width / 2, page_height - doc_obj.topMargin + 12, header_title)
+            except Exception:
+                pass
+
+            # --- línea divisoria bajo el encabezado ---
+            try:
+                line_y = page_height - doc_obj.topMargin
+                canvas_obj.setLineWidth(0.5)
+                canvas_obj.setStrokeColor(colors.grey)
+                canvas_obj.line(doc_obj.leftMargin, line_y, page_width - doc_obj.rightMargin, line_y)
+            except Exception:
+                pass
+
+            # --- PIE DE PÁGINA (copyright) ---
+            try:
+                footer_text = "© CargoEase"
+                canvas_obj.setFont("Helvetica-Oblique", 12)
+                footer_y = doc_obj.bottomMargin / 2.0
+                canvas_obj.drawCentredString(page_width / 2, footer_y, footer_text)
+            except Exception:
+                pass
+
+            canvas_obj.restoreState()
+
+        # Construir documento aplicando header/footer en cada página
+        doc.build(elements, onFirstPage=_header_footer, onLaterPages=_header_footer)
+
         buffer.seek(0)
         filename = f"reporte_vehiculos_{desde_date.strftime('%Y%m')}_{hasta_date.strftime('%Y%m')}.pdf"
         return HttpResponse(buffer.read(), content_type="application/pdf", headers={
