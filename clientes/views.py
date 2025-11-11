@@ -3,6 +3,10 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
+from django.views import View
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
 from .models import Cliente
 from .forms import ClienteForm
 from ubicaciones.models import Provincia, Localidad
@@ -10,6 +14,7 @@ from ubicaciones.models import Provincia, Localidad
 class ClienteListView(ListView):
     """
     Lista paginada de clientes con búsqueda por nombre.
+    Usa el manager por defecto (devuelve solo activos).
     """
     model = Cliente
     template_name = "clientes/clientes_list.html"
@@ -17,10 +22,7 @@ class ClienteListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        """
-        Aplica filtro de búsqueda por nombre y evita consultas N+1 usando select_related.
-        """
-        qs = super().get_queryset().select_related("pais", "provincia", "localidad").order_by("id")
+        qs = Cliente.objects.select_related("pais", "provincia", "localidad").order_by("id")
         q = self.request.GET.get("q", "").strip()
         if q:
             qs = qs.filter(Q(nombre__icontains=q))
@@ -54,11 +56,32 @@ class ClienteUpdateView(UpdateView):
 
 class ClienteDeleteView(DeleteView):
     """
-    Vista para eliminar un cliente.
+    Baja lógica: marca el cliente como inactivo en vez de eliminarlo.
+    GET -> muestra confirmación; POST -> realiza la baja lógica.
     """
     model = Cliente
     template_name = "clientes/clientes_confirm_delete.html"
     success_url = reverse_lazy("clientes_list")
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.is_active = False
+        self.object.save(update_fields=["is_active"])
+        messages.success(request, "Cliente dado de baja correctamente.")
+        return redirect(self.success_url)
+
+    def delete(self, request, *args, **kwargs):
+        # Por seguridad, delegamos a post()
+        return self.post(request, *args, **kwargs)
+
+
+class ClienteReactivateView(View):
+    def post(self, request, pk):
+        cliente = get_object_or_404(Cliente, pk=pk)
+        cliente.is_active = True
+        cliente.save(update_fields=["is_active"])
+        messages.success(request, "Cliente reactivado correctamente.")
+        return redirect("clientes_list")
 
 
 # ----------------------------

@@ -50,18 +50,25 @@
             <tr>
               <td class="centered">{{ c.nombre }}</td>
               <td class="centered">{{ c.correo }}</td>
-              <td class="centered">{{ c.pais.nombre }}</td>
-              <td class="centered">{{ c.provincia.nombre }}</td>
-              <td class="centered">{{ c.localidad.nombre }}</td>
+              <td class="centered">{% if c.pais %}{{ c.pais.nombre }}{% else %}-{% endif %}</td>
+              <td class="centered">{% if c.provincia %}{{ c.provincia.nombre }}{% else %}-{% endif %}</td>
+              <td class="centered">{% if c.localidad %}{{ c.localidad.nombre }}{% else %}-{% endif %}</td>
               <td class="centered">
                 <!-- Botón para editar cliente -->
                 <a class="btn btn-sm btn-outline-warning" href="{% url 'cliente_editar' c.pk %}" title="Editar">
                   <i class="bi bi-pencil"></i>
                 </a>
-                <!-- Botón para eliminar cliente -->
+
+                <!-- Botón para eliminar cliente: abre la página de confirmación -->
+                {% if c.pk %}
                 <a class="btn btn-sm btn-outline-danger" href="{% url 'cliente_eliminar' c.pk %}" title="Eliminar">
                   <i class="bi bi-trash"></i>
                 </a>
+                {% else %}
+                <button class="btn btn-sm btn-outline-danger" disabled title="No disponible">
+                  <i class="bi bi-trash"></i>
+                </button>
+                {% endif %}
               </td>
             </tr>
             {% empty %}
