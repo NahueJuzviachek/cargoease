@@ -1,0 +1,29 @@
+{
+  "title": "CargoEase",
+  "brand": "CargoEase",
+  "nav": {
+    "home": "Home",
+    "clients": "Clients",
+    "drivers": "Drivers",
+    "vehicles": "Vehicles",
+    "tyres": "Tyres",
+    "support": "Support",
+    "language": "Language",
+    "logout": "Logout"
+  },
+  "footer": {
+    "brand": "CargoEase",
+    "school": "IPET 1308"
+  },
+  "modal": {
+    "logout": {
+      "title": "Confirm",
+      "body": "Do you want to log out?"
+    }
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save"
+  }
+}

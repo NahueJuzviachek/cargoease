@@ -12,4 +12,5 @@ urlpatterns = [
     path("soporte/", include("soporte.urls")),
     path("", include("home.urls")),
     path('', include('aceite.urls')),
+    path('i18n/', include('django.conf.urls.i18n')),
 ]

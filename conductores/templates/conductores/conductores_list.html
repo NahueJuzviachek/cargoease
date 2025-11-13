@@ -9,22 +9,23 @@
   <!-- Título principal -->
   <div class="row">
     <div class="col-12 text-center">
-      <h1 class="titulo-clientes">CONDUCTORES</h1>
+      <h1 class="titulo-clientes" data-i18n="drivers.title">CONDUCTORES</h1>
     </div>
   </div>
 
   <!-- Buscador de conductores -->
-  <form method="get" class="d-flex justify-content-center my-3">
+  <form method="get" class="d-flex justify-content-center my-3" role="search" aria-label="Buscar conductores">
     <div class="input-group" style="max-width: 500px; width: 100%;">
-      <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar por nombre...">
-      <button class="btn btn-primary" type="submit" title="Buscar">
+      <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar por nombre..."
+             data-i18n-attr="placeholder:drivers.search_placeholder">
+      <button class="btn btn-primary" type="submit" title="Buscar" data-i18n-attr="title:drivers.search_button">
         <i class="bi bi-search"></i>
       </button>
     </div>
 
     <!-- Botón para agregar un nuevo conductor -->
     <div class="ms-3">
-      <a class="btn btn-success" href="{% url 'conductor_crear' %}" title="Agregar conductor">
+      <a class="btn btn-success" href="{% url 'conductor_crear' %}" title="Agregar conductor" data-i18n-attr="title:drivers.add">
         <i class="bi bi-person-plus"></i>
       </a>
     </div>
@@ -35,11 +36,11 @@
     <table class="table table-striped text-center">
       <thead>
         <tr>
-          <th>Nombre</th>
-          <th>DNI</th>
-          <th>Vehículo</th>
-          <th>Dominio</th>
-          <th>Acciones</th>
+          <th data-i18n="drivers.table.name">Nombre</th>
+          <th data-i18n="drivers.table.dni">DNI</th>
+          <th data-i18n="drivers.table.vehicle">Vehículo</th>
+          <th data-i18n="drivers.table.license_plate">Dominio</th>
+          <th data-i18n="drivers.table.actions">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -51,19 +52,20 @@
           <td>{{ conductor.dominio }}</td>
           <td>
             <!-- Botón Editar -->
-            <a class="btn btn-sm btn-outline-warning" href="{% url 'conductor_editar' conductor.pk %}" title="Editar">
+            <a class="btn btn-sm btn-outline-warning" href="{% url 'conductor_editar' conductor.pk %}" title="Editar"
+               data-i18n-attr="title:buttons.edit">
               <i class="bi bi-pencil"></i>
             </a>
             <!-- Botón Eliminar -->
-            <a class="btn btn-sm btn-outline-danger" href="{% url 'conductor_eliminar' conductor.pk %}"
-              title="Eliminar">
+            <a class="btn btn-sm btn-outline-danger" href="{% url 'conductor_eliminar' conductor.pk %}" title="Eliminar"
+               data-i18n-attr="title:buttons.delete">
               <i class="bi bi-trash"></i>
             </a>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="5">No hay conductores cargados.</td>
+          <td colspan="5" data-i18n="drivers.empty" class="text-center text-muted">No hay conductores cargados.</td>
         </tr>
         {% endfor %}
       </tbody>

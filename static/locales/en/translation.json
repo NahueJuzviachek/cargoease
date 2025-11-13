@@ -1,0 +1,237 @@
+{
+  "title": "CargoEase",
+  "brand": "CargoEase",
+  "nav": {
+    "home": "Home",
+    "clients": "Clients",
+    "drivers": "Drivers",
+    "vehicles": "Vehicles",
+    "tyres": "Tyres",
+    "support": "Support",
+    "language": "Language",
+    "logout": "Logout"
+  },
+  "footer": {
+    "brand": "CargoEase",
+    "school": "IPET 1308"
+  },
+  "modal": {
+    "logout": {
+      "title": "Confirm",
+      "body": "Do you want to log out?"
+    }
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "dashboard": {
+    "title": "General Dashboard",
+    "clientes": {
+      "title": "Most recurring clients (monthly)",
+      "generate_report_button": "Generate Report",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply",
+      "empty": "No data for the period",
+      "error": "Error loading data"
+    },
+    "ranking": {
+      "title": "Vehicles ranking by kilometers",
+      "generate_report_button": "Generate report",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply",
+      "empty": "No data in the range",
+      "error": "Error loading data"
+    },
+    "aceite": {
+      "title": "Oil – Top 5 with least remaining Km.",
+      "empty": "No oil records found",
+      "error": "Error loading data"
+    },
+    "neumaticos": {
+      "title": "Tires – Global status",
+      "empty": "No tires registered",
+      "error": "Error loading data"
+    },
+    "view_vehicles": "View vehicles",
+    "vehicles_unavailable": "Vehicle list not available"
+  },
+  "modals": {
+    "fecha_clients": {
+      "title": "Select date range (Monthly)",
+      "from_label": "From",
+      "to_label": "To",
+      "generate": "Generate Report"
+    },
+    "fecha_vehiculos": {
+      "title": "Select date range (Monthly)",
+      "from_label": "From",
+      "to_label": "To",
+      "generate": "Generate Report"
+    }
+  },
+  "report_clients": {
+    "title": "Clients Report",
+    "back": "Back",
+    "period_label": "Selected period:",
+    "income": {
+      "header": "Clients with highest income"
+    },
+    "trips": {
+      "header": "Clients with most trips"
+    },
+    "table": {
+      "client": "Client",
+      "total_income": "Total Income",
+      "total_trips": "Total Trips"
+    },
+    "empty": "No data available for this period.",
+    "exports": {
+      "csv": "CSV",
+      "excel": "Excel",
+      "pdf": "PDF"
+    }
+  },
+  "report_vehicles": {
+    "title": "Vehicles Report",
+    "back": "Back",
+    "period_label": "Period:",
+    "km": {
+      "header": "Vehicles by km traveled"
+    },
+    "trips": {
+      "header": "Vehicles by trips count"
+    },
+    "table": {
+      "index": "#",
+      "vehicle": "Vehicle",
+      "km": "Km",
+      "trips": "Trips"
+    },
+    "empty": "No data",
+    "exports": {
+      "csv": "CSV",
+      "excel": "Excel",
+      "pdf": "PDF"
+    }
+  },
+  "drivers": {
+    "title": "DRIVERS",
+    "search_placeholder": "Search by name...",
+    "search_button": "Search",
+    "add": "Add driver",
+    "form": {
+      "edit_title": "Edit Driver",
+      "add_title": "Add Driver",
+      "label_name": "Name and Surname",
+      "label_dni": "DNI",
+      "label_vehicle": "Vehicle",
+      "label_dominio": "License plate",
+      "dominio_help": "Automatically filled according to the selected vehicle"
+    },
+    "table": {
+      "name": "Name",
+      "dni": "DNI",
+      "vehicle": "Vehicle",
+      "license_plate": "License plate",
+      "actions": "Actions"
+    },
+    "empty": "No drivers registered.",
+    "exports": {
+      "csv": "CSV",
+      "excel": "Excel",
+      "pdf": "PDF"
+    },
+    "delete": {
+      "title": "Delete driver?"
+    }
+  },
+  "clients": {
+    "title": "CLIENTS",
+    "search_placeholder": "Search by name...",
+    "search_button": "Search",
+    "add": "Add client",
+    "unavailable": "Not available",
+    "table": {
+      "name": "Name",
+      "email": "Email",
+      "country": "Country",
+      "province": "Province",
+      "locality": "Locality",
+      "actions": "Actions"
+    },
+    "empty": "No clients.",
+    "pagination": {
+      "first": "First",
+      "prev": "Previous",
+      "next": "Next",
+      "last": "Last"
+    },
+    "form": {
+      "edit_title": "Edit Client",
+      "add_title": "Add Client",
+      "label_name": "Name",
+      "label_email": "Email",
+      "label_country": "Country",
+      "label_province": "Province",
+      "label_locality": "Locality",
+      "select_province": "— Select province —",
+      "select_locality": "— Select locality —",
+      "loading_provinces": "— Loading provinces —",
+      "loading_localities": "— Loading localities —",
+      "error_loading": "Error loading data"
+    },
+    "delete": {
+      "title": "Delete Client",
+      "question": "Are you sure you want to delete",
+      "question_tail": "? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    }
+  },
+  "vehicles": {
+    "title": "VEHICLES",
+    "search_placeholder": "Search by brand, model, year or plate...",
+    "search_button": "Search",
+    "add": "Add vehicle",
+    "table": {
+      "brand": "Brand",
+      "model": "Model",
+      "year": "Year",
+      "plate": "Plate",
+      "trailer_plate": "Trailer plate",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "trips": "View trips",
+      "oil": "Oil management"
+    },
+    "empty": "No vehicles.",
+    "pagination": {
+      "first": "First",
+      "prev": "Previous",
+      "next": "Next",
+      "last": "Last"
+    },
+    "form": {
+      "edit_title": "Edit Vehicle",
+      "add_title": "Add Vehicle",
+      "label_marca": "Brand",
+      "label_modelo": "Model",
+      "label_anio": "Year of manufacture",
+      "label_dominio": "Plate",
+      "help_dominio": "Format: AA123BB (new) or ABC123 (old)",
+      "label_dominio_remolque": "Trailer plate",
+      "help_dominio_remolque": "Format: AA123BB or ABC123",
+      "label_ejes": "Axles",
+      "help_ejes": "Enter the number of axles of the vehicle"
+    }
+  }
+}

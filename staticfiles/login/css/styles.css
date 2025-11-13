@@ -1,0 +1,64 @@
+:root {
+  --bg: #d8c3ab;       /* Color de fondo general */
+  --card-bg: #d8b48b;  /* Fondo oscuro de la tarjeta */
+  --accent: #c36b3d;   /* Color acento */
+  --text-light: #f5f5f5; /* Texto claro */
+}
+
+.alert { display:block !important; opacity:1 !important; }
+
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  display: grid;
+  place-items: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card-bg);
+  color: var(--text-light);
+  border: 0;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.brand-img {
+  max-width: 160px;
+  height: auto;
+}
+
+.btn-accent {
+  background: #fff;
+  color: #3a2f2a;
+  border: 0;
+}
+.btn-accent:hover {
+  filter: brightness(.97);
+}
+
+.form-control {
+  background: #fff;
+  border: 1px solid #d8c4a8;
+  color: #333;
+}
+.form-control:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 .2rem rgba(195, 107, 61, .3);
+}
+
+.muted-link {
+  color: #f5f5f5;
+  opacity: .85;
+  text-decoration: none;
+}
+.muted-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+label {
+  color: var(--text-light);
+}

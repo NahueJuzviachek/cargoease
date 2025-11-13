@@ -1,0 +1,237 @@
+{
+  "title": "CargoEase",
+  "brand": "CargoEase",
+  "nav": {
+    "home": "Inicio",
+    "clients": "Clientes",
+    "drivers": "Conductores",
+    "vehicles": "Vehículos",
+    "tyres": "Neumáticos",
+    "support": "Soporte",
+    "language": "Idioma",
+    "logout": "Cerrar Sesión"
+  },
+  "footer": {
+    "brand": "CargoEase",
+    "school": "IPET 1308"
+  },
+  "modal": {
+    "logout": {
+      "title": "Confirmar",
+      "body": "¿Desea cerrar sesión?"
+    }
+  },
+  "buttons": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar"
+  },
+  "dashboard": {
+    "title": "Panel General",
+    "clientes": {
+      "title": "Clientes más recurrentes (mensual)",
+      "generate_report_button": "Generar Reporte",
+      "from": "Desde",
+      "to": "Hasta",
+      "apply": "Aplicar",
+      "empty": "Sin datos para el período",
+      "error": "Error cargando datos"
+    },
+    "ranking": {
+      "title": "Ranking de vehículos por kilómetros",
+      "generate_report_button": "Generar reporte",
+      "from": "Desde",
+      "to": "Hasta",
+      "apply": "Aplicar",
+      "empty": "Sin datos en el rango",
+      "error": "Error cargando datos"
+    },
+    "aceite": {
+      "title": "Aceite – Top 5 con menos Km. restantes",
+      "empty": "No hay registros de aceite",
+      "error": "Error cargando datos"
+    },
+    "neumaticos": {
+      "title": "Neumáticos – Estado global",
+      "empty": "No hay neumáticos cargados",
+      "error": "Error cargando datos"
+    },
+    "view_vehicles": "Ver vehículos",
+    "vehicles_unavailable": "Listado de vehículos no disponible"
+  },
+  "modals": {
+    "fecha_clients": {
+      "title": "Seleccionar rango de fechas (Mensual)",
+      "from_label": "Desde",
+      "to_label": "Hasta",
+      "generate": "Generar Reporte"
+    },
+    "fecha_vehiculos": {
+      "title": "Seleccionar rango de fechas (Mensual)",
+      "from_label": "Desde",
+      "to_label": "Hasta",
+      "generate": "Generar Reporte"
+    }
+  },
+  "report_clients": {
+    "title": "Reporte de Clientes",
+    "back": "Volver",
+    "period_label": "Período seleccionado:",
+    "income": {
+      "header": "Clientes con más ingresos"
+    },
+    "trips": {
+      "header": "Clientes con más viajes"
+    },
+    "table": {
+      "client": "Cliente",
+      "total_income": "Total Ingresos",
+      "total_trips": "Total Viajes"
+    },
+    "empty": "No hay datos disponibles para este período.",
+    "exports": {
+      "csv": "CSV",
+      "excel": "Excel",
+      "pdf": "PDF"
+    }
+  },
+  "report_vehicles": {
+    "title": "Reporte de Vehículos",
+    "back": "Volver",
+    "period_label": "Período:",
+    "km": {
+      "header": "Vehículos por km recorridos"
+    },
+    "trips": {
+      "header": "Vehículos por cantidad de viajes"
+    },
+    "table": {
+      "index": "#",
+      "vehicle": "Vehículo",
+      "km": "Km",
+      "trips": "Viajes"
+    },
+    "empty": "Sin datos",
+    "exports": {
+      "csv": "CSV",
+      "excel": "Excel",
+      "pdf": "PDF"
+    }
+  },
+  "drivers": {
+    "title": "CONDUCTORES",
+    "search_placeholder": "Buscar por nombre...",
+    "search_button": "Buscar",
+    "add": "Agregar conductor",
+    "form": {
+      "edit_title": "Editar Conductor",
+      "add_title": "Agregar Conductor",
+      "label_name": "Nombre y Apellido",
+      "label_dni": "DNI",
+      "label_vehicle": "Vehículo",
+      "label_dominio": "Dominio",
+      "dominio_help": "Se completa automáticamente según el vehículo seleccionado"
+    },
+    "table": {
+      "name": "Nombre",
+      "dni": "DNI",
+      "vehicle": "Vehículo",
+      "license_plate": "Dominio",
+      "actions": "Acciones"
+    },
+    "empty": "No hay conductores cargados.",
+    "exports": {
+      "csv": "CSV",
+      "excel": "Excel",
+      "pdf": "PDF"
+    },
+    "delete": {
+      "title": "¿Eliminar conductor?"
+    }
+  },
+  "clients": {
+    "title": "CLIENTES",
+    "search_placeholder": "Buscar por nombre...",
+    "search_button": "Buscar",
+    "add": "Agregar cliente",
+    "unavailable": "No disponible",
+    "table": {
+      "name": "Nombre",
+      "email": "Correo",
+      "country": "País",
+      "province": "Provincia",
+      "locality": "Localidad",
+      "actions": "Acciones"
+    },
+    "empty": "No hay clientes.",
+    "pagination": {
+      "first": "Primera",
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "last": "Última"
+    },
+    "form": {
+      "edit_title": "Editar Cliente",
+      "add_title": "Agregar Cliente",
+      "label_name": "Nombre",
+      "label_email": "Correo",
+      "label_country": "País",
+      "label_province": "Provincia",
+      "label_locality": "Localidad",
+      "select_province": "— Seleccionar provincia —",
+      "select_locality": "— Seleccionar localidad —",
+      "loading_provinces": "— Cargando provincias —",
+      "loading_localities": "— Cargando localidades —",
+      "error_loading": "Error cargando datos"
+    },
+    "delete": {
+      "title": "Eliminar Cliente",
+      "question": "¿Seguro que querés eliminar a",
+      "question_tail": "? Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar"
+    }
+  },
+  "vehicles": {
+    "title": "VEHÍCULOS",
+    "search_placeholder": "Buscar por marca, modelo, año o dominio...",
+    "search_button": "Buscar",
+    "add": "Agregar vehículo",
+    "table": {
+      "brand": "Marca",
+      "model": "Modelo",
+      "year": "Año",
+      "plate": "Dominio",
+      "trailer_plate": "Dominio remolque",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "trips": "Ver viajes",
+      "oil": "Gestión de aceite"
+    },
+    "empty": "No hay vehículos.",
+    "pagination": {
+      "first": "Primera",
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "last": "Última"
+    },
+    "form": {
+      "edit_title": "Editar Vehículo",
+      "add_title": "Agregar Vehículo",
+      "label_marca": "Marca",
+      "label_modelo": "Modelo",
+      "label_anio": "Año de fabricación",
+      "label_dominio": "Dominio",
+      "help_dominio": "Formato: AA123BB (nuevo) o ABC123 (viejo)",
+      "label_dominio_remolque": "Dominio remolque",
+      "help_dominio_remolque": "Formato: AA123BB o ABC123",
+      "label_ejes": "Ejes",
+      "help_ejes": "Ingrese el número de ejes del vehículo"
+    }
+  }
+}

@@ -6,7 +6,11 @@
 
 <div class="container my-4" style="max-width: 720px;">
   <h2 class="titulo-clientes text-center">
-    {% if object %}Editar Vehículo{% else %}Agregar Vehículo{% endif %}
+    {% if object %}
+      <span data-i18n="vehicles.form.edit_title">Editar Vehículo</span>
+    {% else %}
+      <span data-i18n="vehicles.form.add_title">Agregar Vehículo</span>
+    {% endif %}
   </h2>
 
   <form method="post" class="mt-4" novalidate>
@@ -14,47 +18,47 @@
     {{ form.non_field_errors }}
 
     <div class="mb-3">
-      <label class="form-label">{{ form.marca.label }}</label>
+      <label class="form-label" data-i18n-attr="text:vehicles.form.label_marca">{{ form.marca.label }}</label>
       {{ form.marca }}
       {{ form.marca.errors }}
     </div>
 
     <div class="mb-3">
-      <label class="form-label">{{ form.modelo.label }}</label>
+      <label class="form-label" data-i18n-attr="text:vehicles.form.label_modelo">{{ form.modelo.label }}</label>
       {{ form.modelo }}
       {{ form.modelo.errors }}
     </div>
 
     <div class="mb-3">
-      <label class="form-label">{{ form.anio_fabricacion.label }}</label>
+      <label class="form-label" data-i18n-attr="text:vehicles.form.label_anio">{{ form.anio_fabricacion.label }}</label>
       {{ form.anio_fabricacion }}
       {{ form.anio_fabricacion.errors }}
     </div>
 
     <div class="mb-3">
-      <label class="form-label">{{ form.dominio.label }}</label>
+      <label class="form-label" data-i18n-attr="text:vehicles.form.label_dominio">{{ form.dominio.label }}</label>
       {{ form.dominio }}
-      <div class="form-text">Formato: AA123BB (nuevo) o ABC123 (viejo)</div>
+      <div class="form-text" data-i18n="vehicles.form.help_dominio">Formato: AA123BB (nuevo) o ABC123 (viejo)</div>
       {{ form.dominio.errors }}
     </div>
 
     <div class="mb-3">
-      <label class="form-label">{{ form.dominio_remolque.label }}</label>
+      <label class="form-label" data-i18n-attr="text:vehicles.form.label_dominio_remolque">{{ form.dominio_remolque.label }}</label>
       {{ form.dominio_remolque }}
-      <div class="form-text">Formato: AA123BB o ABC123</div>
+      <div class="form-text" data-i18n="vehicles.form.help_dominio_remolque">Formato: AA123BB o ABC123</div>
       {{ form.dominio_remolque.errors }}
     </div>
 
     <div class="mb-3">
-      <label class="form-label">{{ form.ejes.label }}</label>
+      <label class="form-label" data-i18n-attr="text:vehicles.form.label_ejes">{{ form.ejes.label }}</label>
       {{ form.ejes }}
-      <div class="form-text">Ingrese el número de ejes del vehículo</div>
+      <div class="form-text" data-i18n="vehicles.form.help_ejes">Ingrese el número de ejes del vehículo</div>
       {{ form.ejes.errors }}
     </div>
 
     <div class="d-flex gap-2">
-      <a class="btn btn-outline-secondary" href="{% url 'vehiculos_list' %}">Cancelar</a>
-      <button class="btn btn-success" type="submit">Guardar</button>
+      <a class="btn btn-outline-secondary" href="{% url 'vehiculos_list' %}" data-i18n="buttons.cancel">Cancelar</a>
+      <button class="btn btn-success" type="submit" data-i18n="buttons.save">Guardar</button>
     </div>
   </form>
 </div>

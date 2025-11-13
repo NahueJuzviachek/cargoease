@@ -1,0 +1,22 @@
+.centered {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+
+.table-clientes {
+    color: #A06F45;
+}
+
+
+.table-clientes thead th {
+    color: #A06F45;
+    font-weight: bold;
+}
+
+
+.titulo-clientes {
+    color: #A06F45;
+    font-weight: bold;
+    font-size: 2rem;
+}

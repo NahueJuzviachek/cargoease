@@ -4,23 +4,26 @@
 {% block content %}
 <div class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Reporte de Vehículos</h3>
-        <a href="{% url 'home' %}" class="btn btn-secondary btn-sm">Volver</a>
+        <h3 data-i18n="report_vehicles.title">Reporte de Vehículos</h3>
+        <a href="{% url 'home' %}" class="btn btn-secondary btn-sm" data-i18n="report_vehicles.back">Volver</a>
     </div>
 
-    <p class="text-muted">Período: <strong>{{ desde|date:"F Y" }} → {{ hasta|date:"F Y" }}</strong></p>
+    <p class="text-muted">
+      <span data-i18n="report_vehicles.period_label">Período:</span>
+      <strong>{{ desde|date:"F Y" }} → {{ hasta|date:"F Y" }}</strong>
+    </p>
 
     <div class="row">
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">Vehículos por km recorridos</div>
+                <div class="card-header bg-success text-white" data-i18n="report_vehicles.km.header">Vehículos por km recorridos</div>
                 <div class="card-body p-0">
                     <table class="table table-sm mb-0">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Vehículo</th>
-                                <th class="text-end">Km</th>
+                                <th data-i18n="report_vehicles.table.index">#</th>
+                                <th data-i18n="report_vehicles.table.vehicle">Vehículo</th>
+                                <th class="text-end" data-i18n="report_vehicles.table.km">Km</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -32,7 +35,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" class="text-center text-muted">Sin datos</td>
+                                <td colspan="3" class="text-center text-muted" data-i18n="report_vehicles.empty">Sin datos</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -43,14 +46,14 @@
 
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">Vehículos por cantidad de viajes</div>
+                <div class="card-header bg-primary text-white" data-i18n="report_vehicles.trips.header">Vehículos por cantidad de viajes</div>
                 <div class="card-body p-0">
                     <table class="table table-sm mb-0">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Vehículo</th>
-                                <th class="text-end">Viajes</th>
+                                <th data-i18n="report_vehicles.table.index">#</th>
+                                <th data-i18n="report_vehicles.table.vehicle">Vehículo</th>
+                                <th class="text-end" data-i18n="report_vehicles.table.trips">Viajes</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -62,7 +65,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" class="text-center text-muted">Sin datos</td>
+                                <td colspan="3" class="text-center text-muted" data-i18n="report_vehicles.empty">Sin datos</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -78,9 +81,7 @@
             <input type="hidden" name="desde" value="{{ desde|date:'Y-m' }}">
             <input type="hidden" name="hasta" value="{{ hasta|date:'Y-m' }}">
             <input type="hidden" name="format" value="csv">
-            <button type="submit" class="btn btn-outline-secondary btn-sm">
-                CSV
-            </button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm" data-i18n="report_vehicles.exports.csv">CSV</button>
         </form>
 
         {# Excel (.xlsx) #}
@@ -88,9 +89,7 @@
             <input type="hidden" name="desde" value="{{ desde|date:'Y-m' }}">
             <input type="hidden" name="hasta" value="{{ hasta|date:'Y-m' }}">
             <input type="hidden" name="export" value="excel">
-            <button type="submit" class="btn btn-outline-success btn-sm">
-                Excel
-            </button>
+            <button type="submit" class="btn btn-outline-success btn-sm" data-i18n="report_vehicles.exports.excel">Excel</button>
         </form>
 
         {# PDF #}
@@ -98,9 +97,7 @@
             <input type="hidden" name="desde" value="{{ desde|date:'Y-m' }}">
             <input type="hidden" name="hasta" value="{{ hasta|date:'Y-m' }}">
             <input type="hidden" name="export" value="pdf">
-            <button type="submit" class="btn btn-outline-danger btn-sm">
-                PDF
-            </button>
+            <button type="submit" class="btn btn-outline-danger btn-sm" data-i18n="report_vehicles.exports.pdf">PDF</button>
         </form>
     </div>
 </div>

@@ -13,7 +13,7 @@
 
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Panel General</h2>
+    <h2 class="mb-0" data-i18n="dashboard.title">Panel General</h2>
   </div>
 
   <div class="row g-3">
@@ -25,24 +25,22 @@
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="text-center">
               <i class="bi bi-people"></i>
-              <h5 class="card-title mb-0 d-inline-block ms-2">Clientes más recurrentes (mensual)</h5>
+              <h5 class="card-title mb-0 d-inline-block ms-2" data-i18n="dashboard.clientes.title">Clientes más recurrentes (mensual)</h5>
             </div>
             <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
-              data-bs-target="#modalFecha">
-              Generar Reporte
-            </button>
+              data-bs-target="#modalFecha" data-i18n="dashboard.clientes.generate_report_button">Generar Reporte</button>
           </div>
 
           <div class="d-flex justify-content-center gap-2 mb-2">
-            <input type="month" id="cliDesde" class="form-control form-control-sm" style="width: 150px;">
-            <input type="month" id="cliHasta" class="form-control form-control-sm" style="width: 150px;">
-            <button id="cliAplicar" class="btn btn-primary btn-sm">Aplicar</button>
+            <input type="month" id="cliDesde" class="form-control form-control-sm" style="width: 150px;" data-i18n-attr="title:dashboard.clientes.from" />
+            <input type="month" id="cliHasta" class="form-control form-control-sm" style="width: 150px;" data-i18n-attr="title:dashboard.clientes.to" />
+            <button id="cliAplicar" class="btn btn-primary btn-sm" data-i18n="dashboard.clientes.apply">Aplicar</button>
           </div>
 
           <div class="chart-wrap">
             <canvas id="chartClientesTopMensual" height="160"></canvas>
-            <div class="chart-empty d-none" id="emptyClientes">Sin datos para el período</div>
-            <div class="chart-error d-none" id="errorClientes">Error cargando datos</div>
+            <div class="chart-empty d-none" id="emptyClientes" data-i18n="dashboard.clientes.empty">Sin datos para el período</div>
+            <div class="chart-error d-none" id="errorClientes" data-i18n="dashboard.clientes.error">Error cargando datos</div>
           </div>
         </div>
       </div>
@@ -55,21 +53,21 @@
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="text-center">
               <i class="bi bi-trophy"></i>
-              <h5 class="card-title mb-0 d-inline-block ms-2">Ranking de vehículos por kilómetros</h5>
+              <h5 class="card-title mb-0 d-inline-block ms-2" data-i18n="dashboard.ranking.title">Ranking de vehículos por kilómetros</h5>
             </div>
-            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalVehiculos">
+            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalVehiculos" data-i18n="dashboard.ranking.generate_report_button">
               Generar reporte
             </button>
           </div>
           <div class="d-flex justify-content-center gap-2 mb-2">
-            <input type="date" id="rkDesde" class="form-control form-control-sm" style="width: 140px;">
-            <input type="date" id="rkHasta" class="form-control form-control-sm" style="width: 140px;">
-            <button id="rkAplicar" class="btn btn-primary btn-sm">Aplicar</button>
+            <input type="date" id="rkDesde" class="form-control form-control-sm" style="width: 140px;" data-i18n-attr="title:dashboard.ranking.from" />
+            <input type="date" id="rkHasta" class="form-control form-control-sm" style="width: 140px;" data-i18n-attr="title:dashboard.ranking.to" />
+            <button id="rkAplicar" class="btn btn-primary btn-sm" data-i18n="dashboard.ranking.apply">Aplicar</button>
           </div>
           <div class="chart-wrap">
             <canvas id="chartRankingKm" height="140"></canvas>
-            <div class="chart-empty d-none" id="emptyRanking">Sin datos en el rango</div>
-            <div class="chart-error d-none" id="errorRanking">Error cargando datos</div>
+            <div class="chart-empty d-none" id="emptyRanking" data-i18n="dashboard.ranking.empty">Sin datos en el rango</div>
+            <div class="chart-error d-none" id="errorRanking" data-i18n="dashboard.ranking.error">Error cargando datos</div>
           </div>
         </div>
       </div>
@@ -81,12 +79,12 @@
         <div class="card-body">
           <div class="text-center mb-3">
             <i class="bi bi-droplet-half"></i>
-            <h5 class="card-title mb-0 d-inline-block ms-2">Aceite – Top 5 con menos Km. restantes</h5>
+            <h5 class="card-title mb-0 d-inline-block ms-2" data-i18n="dashboard.aceite.title">Aceite – Top 5 con menos Km. restantes</h5>
           </div>
           <div class="chart-wrap text-center">
             <canvas id="chartAceiteTop5" height="180"></canvas>
-            <div class="chart-empty d-none" id="emptyAceite">No hay registros de aceite</div>
-            <div class="chart-error d-none" id="errorAceite">Error cargando datos</div>
+            <div class="chart-empty d-none" id="emptyAceite" data-i18n="dashboard.aceite.empty">No hay registros de aceite</div>
+            <div class="chart-error d-none" id="errorAceite" data-i18n="dashboard.aceite.error">Error cargando datos</div>
           </div>
         </div>
       </div>
@@ -98,12 +96,12 @@
         <div class="card-body">
           <div class="text-center mb-3">
             <i class="bi bi-circle-half"></i>
-            <h5 class="card-title mb-0 d-inline-block ms-2">Neumáticos – Estado global</h5>
+            <h5 class="card-title mb-0 d-inline-block ms-2" data-i18n="dashboard.neumaticos.title">Neumáticos – Estado global</h5>
           </div>
           <div class="chart-wrap text-center">
             <canvas id="chartNeumaticosEstado" height="180"></canvas>
-            <div class="chart-empty d-none" id="emptyNeum">No hay neumáticos cargados</div>
-            <div class="chart-error d-none" id="errorNeum">Error cargando datos</div>
+            <div class="chart-empty d-none" id="emptyNeum" data-i18n="dashboard.neumaticos.empty">No hay neumáticos cargados</div>
+            <div class="chart-error d-none" id="errorNeum" data-i18n="dashboard.neumaticos.error">Error cargando datos</div>
           </div>
         </div>
       </div>
@@ -115,11 +113,11 @@
   <div class="mt-3">
     {% url 'vehiculos_list' as vehs_url %}
     {% if vehs_url %}
-    <a href="{{ vehs_url }}" class="btn btn-outline-secondary btn-sm">
+    <a href="{{ vehs_url }}" class="btn btn-outline-secondary btn-sm" data-i18n="dashboard.view_vehicles">
       <i class="bi bi-truck"></i> Ver vehículos
     </a>
     {% else %}
-    <span class="text-muted small">Listado de vehículos no disponible</span>
+    <span class="text-muted small" data-i18n="dashboard.vehicles_unavailable">Listado de vehículos no disponible</span>
     {% endif %}
   </div>
 </div>
@@ -130,25 +128,25 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalFechaLabel">Seleccionar rango de fechas (Mensual)</h5>
+        <h5 class="modal-title" id="modalFechaLabel" data-i18n="modals.fecha_clients.title">Seleccionar rango de fechas (Mensual)</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
         <form id="reporteClientesForm" method="post" action="{% url 'generar_reporte_clientes' %}">
           {% csrf_token %}
           <div class="mb-3">
-            <label for="cliDesdeModal" class="form-label">Desde</label>
+            <label for="cliDesdeModal" class="form-label" data-i18n="modals.fecha_clients.from_label">Desde</label>
             <input type="month" class="form-control" id="cliDesdeModal" name="desde" required>
           </div>
           <div class="mb-3">
-            <label for="cliHastaModal" class="form-label">Hasta</label>
+            <label for="cliHastaModal" class="form-label" data-i18n="modals.fecha_clients.to_label">Hasta</label>
             <input type="month" class="form-control" id="cliHastaModal" name="hasta" required>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="submit" class="btn btn-primary" form="reporteClientesForm">Generar Reporte</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-i18n="buttons.cancel">Cancelar</button>
+        <button type="submit" class="btn btn-primary" form="reporteClientesForm" data-i18n="modals.fecha_clients.generate">Generar Reporte</button>
       </div>
     </div>
   </div>
@@ -158,26 +156,26 @@
 <div class="modal fade" id="modalVehiculos" tabindex="-1" aria-labelledby="modalVehiculosLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="modalVehiculosLabel">Seleccionar rango de fechas (Mensual)</h5>
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalVehiculosLabel" data-i18n="modals.fecha_vehiculos.title">Seleccionar rango de fechas (Mensual)</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
         <form id="reporteVehiculosForm" method="post" action="{% url 'reporte_vehiculos' %}">
           {% csrf_token %}
           <div class="mb-3">
-            <label for="vehDesdeModal" class="form-label">Desde</label>
+            <label for="vehDesdeModal" class="form-label" data-i18n="modals.fecha_vehiculos.from_label">Desde</label>
             <input type="month" class="form-control" id="vehDesdeModal" name="desde" required>
           </div>
           <div class="mb-3">
-            <label for="vehHastaModal" class="form-label">Hasta</label>
+            <label for="vehHastaModal" class="form-label" data-i18n="modals.fecha_vehiculos.to_label">Hasta</label>
             <input type="month" class="form-control" id="vehHastaModal" name="hasta" required>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="submit" class="btn btn-primary" form="reporteVehiculosForm">Generar Reporte</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" data-i18n="buttons.cancel">Cancelar</button>
+        <button type="submit" class="btn btn-primary" form="reporteVehiculosForm" data-i18n="modals.fecha_vehiculos.generate">Generar Reporte</button>
       </div>
     </div>
   </div>

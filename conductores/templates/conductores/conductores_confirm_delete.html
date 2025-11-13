@@ -2,11 +2,14 @@
 
 {% block content %}
 <div class="container my-5 text-center">
-  <h2>¿Eliminar conductor "{{ object.nombreApellido }}"?</h2>
+  <h2>
+    <span data-i18n="drivers.delete.title">¿Eliminar conductor</span>
+    &nbsp;"<strong>{{ object.nombreApellido }}</strong>"?
+  </h2>
   <form method="post">
     {% csrf_token %}
-    <a class="btn btn-outline-secondary" href="{% url 'conductores_list' %}">Cancelar</a>
-    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a class="btn btn-outline-secondary" href="{% url 'conductores_list' %}" data-i18n="buttons.cancel">Cancelar</a>
+    <button type="submit" class="btn btn-danger" data-i18n="buttons.delete">Eliminar</button>
   </form>
 </div>
 {% endblock %}

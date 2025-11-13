@@ -3,24 +3,26 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/index.css' %}" />
+
 <div class="container my-4">
   <div class="row">
     <div class="col-12 text-center">
-      <h1 class="titulo-clientes">VEHÍCULOS</h1>
+      <h1 class="titulo-clientes" data-i18n="vehicles.title">VEHÍCULOS</h1>
     </div>
   </div>
 
   <!-- Buscador -->
-  <form method="get" class="d-flex justify-content-center my-3">
+  <form method="get" class="d-flex justify-content-center my-3" role="search" aria-label="Buscar vehículos">
     <div class="input-group" style="max-width: 600px; width: 100%;">
       <input type="text" name="q" value="{{ q }}" class="form-control"
-        placeholder="Buscar por marca, modelo, año o dominio...">
-      <button class="btn btn-primary" type="submit" title="Buscar">
+             placeholder="Buscar por marca, modelo, año o dominio..."
+             data-i18n-attr="placeholder:vehicles.search_placeholder">
+      <button class="btn btn-primary" type="submit" title="Buscar" data-i18n-attr="title:vehicles.search_button">
         <i class="bi bi-search"></i>
       </button>
     </div>
     <div class="ms-3">
-      <a class="btn btn-success" href="{% url 'vehiculo_crear' %}" title="Agregar vehículo">
+      <a class="btn btn-success" href="{% url 'vehiculo_crear' %}" title="Agregar vehículo" data-i18n-attr="title:vehicles.add">
         <i class="bi bi-truck"></i> <i class="bi bi-plus-lg"></i>
       </a>
     </div>
@@ -30,12 +32,12 @@
     <table class="table table-striped">
       <thead>
         <tr>
-          <th class="centered">Marca</th>
-          <th class="centered">Modelo</th>
-          <th class="centered">Año</th>
-          <th class="centered">Dominio</th>
-          <th class="centered">Dominio remolque</th>
-          <th class="centered">Acciones</th>
+          <th class="centered" data-i18n="vehicles.table.brand">Marca</th>
+          <th class="centered" data-i18n="vehicles.table.model">Modelo</th>
+          <th class="centered" data-i18n="vehicles.table.year">Año</th>
+          <th class="centered" data-i18n="vehicles.table.plate">Dominio</th>
+          <th class="centered" data-i18n="vehicles.table.trailer_plate">Dominio remolque</th>
+          <th class="centered" data-i18n="vehicles.table.actions">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -48,28 +50,30 @@
           <td class="centered">{{ v.dominio_remolque|default:"—" }}</td>
           <td class="centered">
             <!-- Editar -->
-            <a class="btn btn-sm btn-outline-warning" href="{% url 'vehiculo_editar' v.pk %}" title="Editar">
+            <a class="btn btn-sm btn-outline-warning" href="{% url 'vehiculo_editar' v.pk %}"
+               title="Editar" data-i18n-attr="title:vehicles.actions.edit">
               <i class="bi bi-pencil"></i>
             </a>
             <!-- Eliminar -->
-            <a class="btn btn-sm btn-outline-danger" href="{% url 'vehiculo_eliminar' v.pk %}" title="Eliminar">
+            <a class="btn btn-sm btn-outline-danger" href="{% url 'vehiculo_eliminar' v.pk %}"
+               title="Eliminar" data-i18n-attr="title:vehicles.actions.delete">
               <i class="bi bi-trash"></i>
             </a>
             <!-- Viajes -->
             <a class="btn btn-sm btn-outline-secondary" href="{% url 'vehiculo_viajes_list' vehiculo_pk=v.pk %}"
-              title="Ver viajes">
+               title="Ver viajes" data-i18n-attr="title:vehicles.actions.trips">
               <i class="bi bi-geo-alt"></i>
             </a>
             <!-- Aceite -->
             <a class="btn btn-sm btn-outline-info" href="{% url 'vehiculo_aceite' vehiculo_pk=v.pk %}"
-              title="Gestión de aceite">
+               title="Gestión de aceite" data-i18n-attr="title:vehicles.actions.oil">
               <i class="bi bi-droplet"></i>
             </a>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="6" class="text-center">No hay vehículos.</td>
+          <td colspan="6" class="text-center" data-i18n="vehicles.empty">No hay vehículos.</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -80,25 +84,21 @@
   <nav aria-label="Paginación">
     <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
-      <li class="page-item"><a class="page-link" href="?q={{ q }}&page=1">Primera</a></li>
-      <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.previous_page_number }}">Anterior</a>
-      </li>
+      <li class="page-item"><a class="page-link" href="?q={{ q }}&page=1" data-i18n="vehicles.pagination.first">Primera</a></li>
+      <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.previous_page_number }}" data-i18n="vehicles.pagination.prev">Anterior</a></li>
       {% else %}
-      <li class="page-item disabled"><span class="page-link">Primera</span></li>
-      <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+      <li class="page-item disabled"><span class="page-link" data-i18n="vehicles.pagination.first">Primera</span></li>
+      <li class="page-item disabled"><span class="page-link" data-i18n="vehicles.pagination.prev">Anterior</span></li>
       {% endif %}
 
-      <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages
-          }}</span></li>
+      <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
 
       {% if page_obj.has_next %}
-      <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.next_page_number }}">Siguiente</a>
-      </li>
-      <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.paginator.num_pages }}">Última</a>
-      </li>
+      <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.next_page_number }}" data-i18n="vehicles.pagination.next">Siguiente</a></li>
+      <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.paginator.num_pages }}" data-i18n="vehicles.pagination.last">Última</a></li>
       {% else %}
-      <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
-      <li class="page-item disabled"><span class="page-link">Última</span></li>
+      <li class="page-item disabled"><span class="page-link" data-i18n="vehicles.pagination.next">Siguiente</span></li>
+      <li class="page-item disabled"><span class="page-link" data-i18n="vehicles.pagination.last">Última</span></li>
       {% endif %}
     </ul>
   </nav>

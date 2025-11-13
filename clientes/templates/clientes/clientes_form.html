@@ -6,97 +6,138 @@
 
 <div class="container my-4" style="max-width: 720px;">
   <h2 class="titulo-clientes text-center">
-    {% if object %}Editar Cliente{% else %}Agregar Cliente{% endif %}
+    {% if object %}
+      <span data-i18n="clients.form.edit_title">Editar Cliente</span>
+    {% else %}
+      <span data-i18n="clients.form.add_title">Agregar Cliente</span>
+    {% endif %}
   </h2>
 
-  <form method="post" class="mt-4">
+  <form method="post" class="mt-4" novalidate>
     {% csrf_token %}
     {{ form.non_field_errors }}
 
     <!-- Nombre -->
     <div class="mb-3">
-      <label class="form-label">{{ form.nombre.label }}</label>
+      <label class="form-label" data-i18n-attr="text:clients.form.label_name">{{ form.nombre.label }}</label>
       {{ form.nombre }}
       <div class="text-danger small">{{ form.nombre.errors }}</div>
     </div>
 
     <!-- Correo -->
     <div class="mb-3">
-      <label class="form-label">{{ form.correo.label }}</label>
+      <label class="form-label" data-i18n-attr="text:clients.form.label_email">{{ form.correo.label }}</label>
       {{ form.correo }}
       <div class="text-danger small">{{ form.correo.errors }}</div>
     </div>
 
     <!-- País -->
     <div class="mb-3">
-      <label class="form-label">{{ form.pais.label }}</label>
+      <label class="form-label" data-i18n-attr="text:clients.form.label_country">{{ form.pais.label }}</label>
       {{ form.pais }}
       <div class="text-danger small">{{ form.pais.errors }}</div>
     </div>
 
     <!-- Provincia -->
     <div class="mb-3">
-      <label class="form-label">{{ form.provincia.label }}</label>
+      <label class="form-label" data-i18n-attr="text:clients.form.label_province">{{ form.provincia.label }}</label>
       {{ form.provincia }}
       <div class="text-danger small">{{ form.provincia.errors }}</div>
     </div>
 
     <!-- Localidad -->
     <div class="mb-3">
-      <label class="form-label">{{ form.localidad.label }}</label>
+      <label class="form-label" data-i18n-attr="text:clients.form.label_locality">{{ form.localidad.label }}</label>
       {{ form.localidad }}
       <div class="text-danger small">{{ form.localidad.errors }}</div>
     </div>
 
     <div class="d-flex gap-2">
-      <a class="btn btn-outline-secondary" href="{% url 'clientes_list' %}">Cancelar</a>
-      <button class="btn btn-success" type="submit">Guardar</button>
+      <a class="btn btn-outline-secondary" href="{% url 'clientes_list' %}" data-i18n="buttons.cancel">Cancelar</a>
+      <button class="btn btn-success" type="submit" data-i18n="buttons.save">Guardar</button>
     </div>
   </form>
 </div>
 
-<!-- Script para selects dependientes -->
+<!-- Script para selects dependientes (usa i18next si está disponible) -->
 <script>
-  (function () {
-    const $ = (sel) => document.querySelector(sel);
-    const paisSelect = $("#id_pais");
-    const provinciaSelect = $("#id_provincia");
-    const localidadSelect = $("#id_localidad");
+(function () {
+  function t(key, fallback) {
+    try { if (window.i18next && typeof i18next.t === 'function') return i18next.t(key); } catch (e) {}
+    return fallback || key;
+  }
 
-    function resetSelect(el, placeholder) {
-      el.innerHTML = "";
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = placeholder;
-      el.appendChild(opt);
+  const paisSelect = document.getElementById("id_pais");
+  const provinciaSelect = document.getElementById("id_provincia");
+  const localidadSelect = document.getElementById("id_localidad");
+
+  function resetSelect(el, placeholder) {
+    if (!el) return;
+    el.innerHTML = "";
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = placeholder;
+    el.appendChild(opt);
+  }
+
+  // inicial placeholders
+  if (provinciaSelect) resetSelect(provinciaSelect, t('clients.form.select_province','— Seleccionar provincia —'));
+  if (localidadSelect) resetSelect(localidadSelect, t('clients.form.select_locality','— Seleccionar localidad —'));
+
+  paisSelect?.addEventListener("change", async function () {
+    if (!provinciaSelect || !localidadSelect) return;
+    resetSelect(provinciaSelect, t('clients.form.loading_provinces','— Cargando provincias —'));
+    resetSelect(localidadSelect, t('clients.form.select_locality','— Seleccionar localidad —'));
+
+    const pais = this.value;
+    if (!pais) {
+      resetSelect(provinciaSelect, t('clients.form.select_province','— Seleccionar provincia —'));
+      return;
     }
 
-    paisSelect?.addEventListener("change", async function () {
-      resetSelect(provinciaSelect, "— Seleccionar provincia —");
-      resetSelect(localidadSelect, "— Seleccionar localidad —");
-      const pais = this.value;
-      if (!pais) return;
-      const res = await fetch(`{% url 'ajax_cargar_provincias' %}?pais=${pais}`);
+    try {
+      const res = await fetch(`{% url 'ajax_cargar_provincias' %}?pais=${encodeURIComponent(pais)}`);
+      if (!res.ok) throw new Error('Network response not ok');
       const data = await res.json();
+
+      resetSelect(provinciaSelect, t('clients.form.select_province','— Seleccionar provincia —'));
       data.forEach(p => {
         const o = document.createElement("option");
         o.value = p.id; o.textContent = p.nombre;
         provinciaSelect.appendChild(o);
       });
-    });
+    } catch (err) {
+      console.error('[clients.form] error cargando provincias:', err);
+      resetSelect(provinciaSelect, t('clients.form.error_loading','Error'));
+    }
+  });
 
-    provinciaSelect?.addEventListener("change", async function () {
-      resetSelect(localidadSelect, "— Seleccionar localidad —");
-      const provincia = this.value;
-      if (!provincia) return;
-      const res = await fetch(`{% url 'ajax_cargar_localidades' %}?provincia=${provincia}`);
+  provinciaSelect?.addEventListener("change", async function () {
+    if (!localidadSelect) return;
+    resetSelect(localidadSelect, t('clients.form.loading_localities','— Cargando localidades —'));
+
+    const provincia = this.value;
+    if (!provincia) {
+      resetSelect(localidadSelect, t('clients.form.select_locality','— Seleccionar localidad —'));
+      return;
+    }
+
+    try {
+      const res = await fetch(`{% url 'ajax_cargar_localidades' %}?provincia=${encodeURIComponent(provincia)}`);
+      if (!res.ok) throw new Error('Network response not ok');
       const data = await res.json();
+
+      resetSelect(localidadSelect, t('clients.form.select_locality','— Seleccionar localidad —'));
       data.forEach(l => {
         const o = document.createElement("option");
         o.value = l.id; o.textContent = l.nombre;
         localidadSelect.appendChild(o);
       });
-    });
-  })();
+    } catch (err) {
+      console.error('[clients.form] error cargando localidades:', err);
+      resetSelect(localidadSelect, t('clients.form.error_loading','Error'));
+    }
+  });
+})();
 </script>
 {% endblock %}
