@@ -8,23 +8,25 @@
 <div class="container my-4">
 
     <div class="d-flex align-items-center justify-content-between mb-3">
-        <h2 class="mb-0">Control General de Neumáticos</h2>
+        <h2 class="mb-0" data-i18n="tyres.control.title">Control General de Neumáticos</h2>
 
         <div class="d-flex gap-2">
             <!-- Reubicar (swap de 2) -->
             <form id="formReubicar" method="post" action="{% url 'neumaticos_reubicar' %}"
-                data-confirm="¿Desea reubicar los neumáticos seleccionados?">
+                data-confirm="¿Desea reubicar los neumáticos seleccionados?"
+                data-i18n-attr="data-confirm:neumaticos.reubicar.confirm">
                 {% csrf_token %}
                 <input type="hidden" name="neumaticos_ids_swap" id="neumaticos_ids_swap">
-                <button type="submit" class="btn btn-primary" id="btnReubicar" disabled>Reubicar</button>
+                <button type="submit" class="btn btn-primary" id="btnReubicar" disabled data-i18n="neumaticos.reubicar.button">Reubicar</button>
             </form>
 
             <!-- Recapar (máximo 2 porque limitamos selección global) -->
             <form id="formRecapar" method="post" action="{% url 'neumaticos_recapar' %}"
-                data-confirm="¿Desea recapar los neumáticos seleccionados? Se reiniciarán los km.">
+                data-confirm="¿Desea recapar los neumáticos seleccionados? Se reiniciarán los km."
+                data-i18n-attr="data-confirm:neumaticos.recapar.confirm">
                 {% csrf_token %}
                 <input type="hidden" name="neumaticos_ids_recapar" id="neumaticos_ids_recapar">
-                <button type="submit" class="btn btn-warning" id="btnRecapar" disabled>Recapar</button>
+                <button type="submit" class="btn btn-warning" id="btnRecapar" disabled data-i18n="neumaticos.recapar.button">Recapar</button>
             </form>
         </div>
     </div>

@@ -7,7 +7,7 @@
 <div class="container-fluid my-4">  {# container-fluid ocupa todo el ancho #}
     <div class="row">
         <div class="col-12 text-center">
-            <h1 class="titulo-clientes text-center">Viajes de {{ vehiculo }}</h1>
+            <h1 class="titulo-clientes text-center" data-i18n-attr="innerHTML:vehicles.trips.title" data-i18n-options='{"vehiculo":"{{ vehiculo }}"}'>Viajes de {{ vehiculo }}</h1>
         </div>
     </div>
 
@@ -17,29 +17,30 @@
         <!-- Buscador -->
         <div class="input-group" style="max-width: 400px;">
             <input type="text" name="q" value="{{ q }}" class="form-control"
-                placeholder="Buscar por salida o destino...">
-            <button class="btn btn-primary" type="submit" title="Buscar">
+                placeholder="Buscar por salida o destino..."
+                data-i18n-attr="placeholder:vehicles.trips.search_placeholder">
+            <button class="btn btn-primary" type="submit" title="Buscar" data-i18n-attr="title:vehicles.trips.search_button">
                 <i class="bi bi-search"></i>
             </button>
         </div>
 
         <!-- Filtro de orden -->
         <div>
-            <select name="order" id="order-select" class="form-select form-select-sm">
-                <option value="all" {% if not order or order == 'all' %}selected{% endif %}>Todos</option>
-                <option value="recent" {% if order == 'recent' %}selected{% endif %}>Más recientes</option>
-                <option value="oldest" {% if order == 'oldest' %}selected{% endif %}>Más antiguos</option>
+            <select name="order" id="order-select" class="form-select form-select-sm" data-i18n-attr="aria-label:vehicles.trips.order_label">
+                <option value="all" {% if not order or order == 'all' %}selected{% endif %} data-i18n="vehicles.trips.order.all">Todos</option>
+                <option value="recent" {% if order == 'recent' %}selected{% endif %} data-i18n="vehicles.trips.order.recent">Más recientes</option>
+                <option value="oldest" {% if order == 'oldest' %}selected{% endif %} data-i18n="vehicles.trips.order.oldest">Más antiguos</option>
             </select>
         </div>
 
         <!-- Fecha específica -->
         <div>
-            <input type="date" name="date" value="{{ date }}" class="form-control form-control-sm">
+            <input type="date" name="date" value="{{ date }}" class="form-control form-control-sm" data-i18n-attr="aria-label:vehicles.trips.date_label">
         </div>
 
         <!-- Botón de agregar -->
         <div>
-            <a class="btn btn-success" href="{% url 'vehiculo_viaje_crear' vehiculo.pk %}" title="Agregar viaje">
+            <a class="btn btn-success" href="{% url 'vehiculo_viaje_crear' vehiculo.pk %}" title="Agregar viaje" data-i18n-attr="title:vehicles.trips.add">
                 <i class="bi bi-plus-circle"></i>
             </a>
         </div>
@@ -52,17 +53,17 @@
                 <table class="table table-striped table-clientes w-100" style="min-width: 1200px;">
                     <thead>
                         <tr>
-                            <th class="centered">Fecha</th>
-                            <th class="centered">Cliente</th>
-                            <th class="centered">Salida</th>
-                            <th class="centered">Destino</th>
-                            <th class="centered">Distancia (km)</th>
-                            <th class="centered">Flete</th>
-                            <th class="centered">Conductor (%)</th>
-                            <th class="centered">Viáticos</th>
-                            <th class="centered">Gasto</th>
-                            <th class="centered">Ganancia</th>
-                            <th class="centered">Acciones</th>
+                            <th class="centered" data-i18n="vehicles.trips.table.date">Fecha</th>
+                            <th class="centered" data-i18n="vehicles.trips.table.client">Cliente</th>
+                            <th class="centered" data-i18n="vehicles.trips.table.origin">Salida</th>
+                            <th class="centered" data-i18n="vehicles.trips.table.destination">Destino</th>
+                            <th class="centered" data-i18n="vehicles.trips.table.distance">Distancia (km)</th>
+                            <th class="centered" data-i18n="vehicles.trips.table.freight">Flete</th>
+                            <th class="centered" data-i18n="vehicles.trips.table.driver_pct">Conductor (%)</th>
+                            <th class="centered" data-i18n="vehicles.trips.table.per_diem">Viáticos</th>
+                            <th class="centered" data-i18n="vehicles.trips.table.cost">Gasto</th>
+                            <th class="centered" data-i18n="vehicles.trips.table.profit">Ganancia</th>
+                            <th class="centered" data-i18n="vehicles.trips.table.actions">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -105,17 +106,17 @@
                             <td class="centered">
                                 <div class="btn-group" role="group">
                                     <a class="btn btn-sm btn-outline-primary"
-                                        href="{% url 'vehiculo_viaje_editar' vehiculo.pk v.pk %}" title="Editar">
+                                        href="{% url 'vehiculo_viaje_editar' vehiculo.pk v.pk %}" title="Editar" data-i18n-attr="title:vehicles.trips.actions.edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
 
                                     <a class="btn btn-sm btn-outline-danger"
-                                        href="{% url 'vehiculo_viaje_eliminar' vehiculo.pk v.pk %}" title="Eliminar">
+                                        href="{% url 'vehiculo_viaje_eliminar' vehiculo.pk v.pk %}" title="Eliminar" data-i18n-attr="title:vehicles.trips.actions.delete">
                                         <i class="bi bi-trash"></i>
                                     </a>
 
                                     <a class="btn btn-sm btn-outline-warning"
-                                        href="{% url 'viaje_gastos_list' v.pk %}" title="Gastos extra">
+                                        href="{% url 'viaje_gastos_list' v.pk %}" title="Gastos extra" data-i18n-attr="title:vehicles.trips.actions.extra_costs">
                                         <i class="bi bi-receipt"></i>
                                     </a>
                                 </div>
@@ -123,7 +124,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="11" class="text-center">No hay viajes.</td>
+                            <td colspan="11" class="text-center" data-i18n="vehicles.trips.empty">No hay viajes.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -135,14 +136,14 @@
             <nav aria-label="Paginación">
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?q={{ q }}&order={{ order }}&page=1">Primera</a>
+                    <li class="page-item"><a class="page-link" href="?q={{ q }}&order={{ order }}&page=1" data-i18n="vehicles.trips.pagination.first">Primera</a>
                     </li>
                     <li class="page-item"><a class="page-link"
-                            href="?q={{ q }}&order={{ order }}&page={{ page_obj.previous_page_number }}">Anterior</a>
+                            href="?q={{ q }}&order={{ order }}&page={{ page_obj.previous_page_number }}" data-i18n="vehicles.trips.pagination.prev">Anterior</a>
                     </li>
                     {% else %}
-                    <li class="page-item disabled"><span class="page-link">Primera</span></li>
-                    <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                    <li class="page-item disabled"><span class="page-link" data-i18n="vehicles.trips.pagination.first">Primera</span></li>
+                    <li class="page-item disabled"><span class="page-link" data-i18n="vehicles.trips.pagination.prev">Anterior</span></li>
                     {% endif %}
 
                     <li class="page-item active">
@@ -151,12 +152,12 @@
 
                     {% if page_obj.has_next %}
                     <li class="page-item"><a class="page-link"
-                            href="?q={{ q }}&order={{ order }}&page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                            href="?q={{ q }}&order={{ order }}&page={{ page_obj.next_page_number }}" data-i18n="vehicles.trips.pagination.next">Siguiente</a></li>
                     <li class="page-item"><a class="page-link"
-                            href="?q={{ q }}&order={{ order }}&page={{ page_obj.paginator.num_pages }}">Última</a></li>
+                            href="?q={{ q }}&order={{ order }}&page={{ page_obj.paginator.num_pages }}" data-i18n="vehicles.trips.pagination.last">Última</a></li>
                     {% else %}
-                    <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
-                    <li class="page-item disabled"><span class="page-link">Última</span></li>
+                    <li class="page-item disabled"><span class="page-link" data-i18n="vehicles.trips.pagination.next">Siguiente</span></li>
+                    <li class="page-item disabled"><span class="page-link" data-i18n="vehicles.trips.pagination.last">Última</span></li>
                     {% endif %}
                 </ul>
             </nav>

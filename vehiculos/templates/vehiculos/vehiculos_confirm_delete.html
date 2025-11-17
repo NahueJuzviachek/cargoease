@@ -5,14 +5,23 @@
 <link rel="stylesheet" href="{% static 'css/index.css' %}"/>
 
 <div class="container my-4" style="max-width: 720px;">
-  <h2 class="titulo-clientes text-center">Eliminar Vehículo</h2>
+  <h2 class="titulo-clientes text-center" data-i18n="vehicles.delete.title">Eliminar Vehículo</h2>
+
   <div class="alert alert-warning mt-4">
-    ¿Seguro que querés eliminar <strong>{{ object.marca }} {{ object.modelo }} {{ object.anio_fabricacion }} ({{ object.dominio }})</strong>? Esta acción no se puede deshacer.
+    <span data-i18n="vehicles.delete.question">¿Seguro que querés eliminar</span>
+    <strong>{{ object.marca }} {{ object.modelo }} {{ object.anio_fabricacion }} ({{ object.dominio }})</strong>
+    <span data-i18n="vehicles.delete.question_tail">? Esta acción no se puede deshacer.</span>
   </div>
+
   <form method="post" class="d-flex gap-2">
     {% csrf_token %}
-    <a class="btn btn-outline-secondary" href="{% url 'vehiculos_list' %}">Cancelar</a>
-    <button class="btn btn-danger" type="submit">Eliminar</button>
+    <a class="btn btn-outline-secondary"
+       href="{% url 'vehiculos_list' %}"
+       data-i18n="vehicles.delete.cancel">Cancelar</a>
+
+    <button class="btn btn-danger"
+            type="submit"
+            data-i18n="vehicles.delete.confirm">Eliminar</button>
   </form>
 </div>
 {% endblock %}

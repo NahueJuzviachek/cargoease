@@ -5,37 +5,45 @@
 <link rel="stylesheet" href="{% static 'css/index.css' %}" />
 
 <div class="container my-4" style="max-width: 900px;">
+
     <!-- Encabezado -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">Gastos extra</h2>
+        <h2 class="mb-0" data-i18n="extra_expenses.title">Gastos extra</h2>
         <a href="{% url 'vehiculo_viajes_list' viaje.vehiculo.pk %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Volver
+            <i class="bi bi-arrow-left"></i>
+            <span data-i18n="buttons.back">Volver</span>
         </a>
     </div>
 
     <!-- Formulario compacto -->
     <div class="card mb-3">
         <div class="card-header">
-            <i class="bi bi-receipt"></i> Registrar gasto extra
+            <i class="bi bi-receipt"></i>
+            <span data-i18n="extra_expenses.form.title">Registrar gasto extra</span>
         </div>
         <div class="card-body">
             <form method="post" class="row g-3">
                 {% csrf_token %}
+
                 <div class="col-md-3">
-                    <label class="form-label">Fecha</label>
+                    <label class="form-label" data-i18n="extra_expenses.form.date">Fecha</label>
                     {{ form.fecha }}
                 </div>
+
                 <div class="col-md-3">
-                    <label class="form-label">Monto</label>
+                    <label class="form-label" data-i18n="extra_expenses.form.amount">Monto</label>
                     {{ form.monto }}
                 </div>
+
                 <div class="col-md-6">
-                    <label class="form-label">Descripción</label>
+                    <label class="form-label" data-i18n="extra_expenses.form.description">Descripción</label>
                     {{ form.descripcion }}
                 </div>
+
                 <div class="col-12 d-flex justify-content-end">
                     <button type="submit" class="btn btn-warning">
-                        <i class="bi bi-plus-lg"></i> Guardar
+                        <i class="bi bi-plus-lg"></i>
+                        <span data-i18n="buttons.save">Guardar</span>
                     </button>
                 </div>
             </form>
@@ -45,16 +53,17 @@
     <!-- Tabla de gastos -->
     <div class="card">
         <div class="card-header">
-            <i class="bi bi-list-ul"></i> Gastos registrados
+            <i class="bi bi-list-ul"></i>
+            <span data-i18n="extra_expenses.table.title">Gastos registrados</span>
         </div>
         <div class="table-responsive">
             <table class="table table-striped mb-0">
                 <thead>
                     <tr>
-                        <th>Fecha</th>
-                        <th>Descripción</th>
-                        <th class="text-end">Monto</th>
-                        <th class="text-center">Acciones</th>
+                        <th data-i18n="extra_expenses.table.date">Fecha</th>
+                        <th data-i18n="extra_expenses.table.description">Descripción</th>
+                        <th class="text-end" data-i18n="extra_expenses.table.amount">Monto</th>
+                        <th class="text-center" data-i18n="extra_expenses.table.actions">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,10 +76,9 @@
                         </td>
                         <td class="text-center">
                             <!-- Eliminar -->
-                            <form action="{% url 'gasto_extra_eliminar' viaje.id g.id %}" method="post"
-                                class="d-inline">
+                            <form action="{% url 'gasto_extra_eliminar' viaje.id g.id %}" method="post" class="d-inline">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar" data-i18n="buttons.delete">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
@@ -78,12 +86,15 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center">No hay gastos registrados.</td>
+                        <td colspan="4" class="text-center" data-i18n="extra_expenses.table.empty">
+                            No hay gastos registrados.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+
 </div>
 {% endblock %}

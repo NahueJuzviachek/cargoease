@@ -1,55 +1,80 @@
 <div class="card shadow-sm h-100">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-            <h5 class="mb-0">Almacén</h5>
+            <h5 class="mb-0" data-i18n="tyres.storage.title">Almacén</h5>
 
             <!-- Toolbar -->
             <div class="d-flex align-items-stretch flex-wrap gap-2">
 
-                <!-- Selector de condición (queda a la izquierda, fuera del form) -->
-                <select name="tipo_condicion" class="form-select form-select-sm w-auto" style="min-width: 120px;"
-                    form="formNuevoAlmacen" <!-- se envía con el form de Nuevo -->
-                    required>
-                    <option value="nuevo" selected>Nuevo</option>
-                    <option value="recapado">Recapado</option>
-                    <option value="usado">Usado</option>
+                <!-- Selector de condición -->
+                <select name="tipo_condicion"
+                        class="form-select form-select-sm w-auto"
+                        style="min-width: 120px;"
+                        form="formNuevoAlmacen"
+                        required>
+                    <option value="nuevo" selected data-i18n="tyres.storage.condition.new">Nuevo</option>
+                    <option value="recapado" data-i18n="tyres.storage.condition.retread">Recapado</option>
+                    <option value="usado" data-i18n="tyres.storage.condition.used">Usado</option>
                 </select>
 
                 <!-- Botón NUEVO -->
-                <form id="formNuevoAlmacen" method="post" action="{% url 'neumaticos_nuevo_almacen' %}"
-                    class="d-flex align-items-stretch">
+                <form id="formNuevoAlmacen"
+                      method="post"
+                      action="{% url 'neumaticos_nuevo_almacen' %}"
+                      class="d-flex align-items-stretch">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success btn-sm px-3">Nuevo</button>
+                    <button type="submit"
+                            class="btn btn-success btn-sm px-3"
+                            data-i18n="tyres.storage.button.new">
+                        Nuevo
+                    </button>
                 </form>
 
                 <!-- Botón ELIMINAR -->
-                <form id="formEliminarAlmacen" method="post" action="{% url 'neumaticos_eliminar_almacen' %}"
-                    data-confirm="¿Desea eliminar los neumáticos seleccionados? Esta acción es irreversible."
-                    class="d-flex align-items-stretch">
+                <form id="formEliminarAlmacen"
+                      method="post"
+                      action="{% url 'neumaticos_eliminar_almacen' %}"
+                      data-confirm="¿Desea eliminar los neumáticos seleccionados? Esta acción es irreversible."
+                      data-i18n-attr="data-confirm:tyres.storage.delete.confirm"
+                      class="d-flex align-items-stretch">
                     {% csrf_token %}
                     <input type="hidden" name="neumaticos_ids_eliminar" id="neumaticos_ids_eliminar">
-                    <button type="submit" class="btn btn-outline-danger btn-sm px-3" id="btnEliminarAlmacen" disabled>
+                    <button type="submit"
+                            class="btn btn-outline-danger btn-sm px-3"
+                            id="btnEliminarAlmacen"
+                            disabled
+                            data-i18n="tyres.storage.button.delete">
                         Eliminar
                     </button>
                 </form>
             </div>
         </div>
 
-        <!-- (resto del listado del almacén se mantiene igual) -->
+        <!-- Listado del almacén -->
         <div class="vstack gap-2">
             {% for n in almacen %}
             <label class="border rounded p-2 d-flex align-items-center gap-2 neum-item">
-                <input class="form-check-input select-neum" type="checkbox" value="{{ n.pk }}" data-scope="almacen" />
+                <input class="form-check-input select-neum"
+                       type="checkbox"
+                       value="{{ n.pk }}"
+                       data-scope="almacen" />
+
                 <div class="flex-grow-1">
                     <div class="d-flex justify-content-between small align-items-center">
                         <strong>{{ n.pk }}</strong>
-                        <span>{{ n.km|default:0 }} km — {{ n.tipo.descripcion|default:"" }}</span>
+                        <span>
+                            {{ n.km|default:0 }} km —
+                            {{ n.tipo.descripcion|default:"" }}
+                        </span>
                     </div>
-                    <div class="progress mt-1" style="height: 14px;" data-km="{{ n.km|default:0 }}"
-                        data-tipo="{{ n.tipo.descripcion|default:''|lower }}"
-                        data-cap-nuevo="{{ caps_por_tipo.nuevo|default:'' }}"
-                        data-cap-recapado="{{ caps_por_tipo.recapado|default:'' }}"
-                        data-cap-usado="{{ caps_por_tipo.usado|default:'' }}">
+
+                    <div class="progress mt-1"
+                         style="height: 14px;"
+                         data-km="{{ n.km|default:0 }}"
+                         data-tipo="{{ n.tipo.descripcion|default:''|lower }}"
+                         data-cap-nuevo="{{ caps_por_tipo.nuevo|default:'' }}"
+                         data-cap-recapado="{{ caps_por_tipo.recapado|default:'' }}"
+                         data-cap-usado="{{ caps_por_tipo.usado|default:'' }}">
                         <div class="progress-bar" role="progressbar">
                             <span class="progress-label"></span>
                         </div>
@@ -57,7 +82,7 @@
                 </div>
             </label>
             {% empty %}
-            <div class="text-muted small">No hay neumáticos en almacén.</div>
+            <div class="text-muted small" data-i18n="tyres.storage.empty">No hay neumáticos en almacén.</div>
             {% endfor %}
         </div>
     </div>

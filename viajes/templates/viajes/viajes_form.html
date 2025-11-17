@@ -6,7 +6,11 @@
 
 <div class="container my-4" style="max-width: 900px;">
     <h2 class="titulo-viajes text-center">
-        {% if object %}Editar Viaje{% else %}Agregar Viaje{% endif %}
+        {% if object %}
+            <span data-i18n="vehicles.trips.form.title.edit">Editar Viaje</span>
+        {% else %}
+            <span data-i18n="vehicles.trips.form.title.add">Agregar Viaje</span>
+        {% endif %}
     </h2>
 
     {# --- Nodo de configuración para JS (sin JS inline) --- #}
@@ -23,12 +27,12 @@
         <!-- Datos generales -->
         <div class="row g-3">
             <div class="col-md-4">
-                <label class="form-label">{{ form.fecha.label }}</label>
+                <label class="form-label" data-i18n="vehicles.trips.form.label.fecha">{{ form.fecha.label }}</label>
                 {{ form.fecha }}
                 <div class="text-danger small">{{ form.fecha.errors }}</div>
             </div>
             <div class="col-md-8">
-                <label class="form-label">{{ form.cliente.label }}</label>
+                <label class="form-label" data-i18n="vehicles.trips.form.label.cliente">{{ form.cliente.label }}</label>
                 {{ form.cliente }}
                 <div class="text-danger small">{{ form.cliente.errors }}</div>
             </div>
@@ -38,19 +42,19 @@
         <div class="row g-4 mt-1">
             <div class="col-md-6">
                 <div class="border rounded p-3 h-100">
-                    <h5 class="mb-3">Salida</h5>
+                    <h5 class="mb-3" data-i18n="vehicles.trips.form.section.origin">Salida</h5>
                     <div class="mb-3">
-                        <label class="form-label">{{ form.salida_pais.label }}</label>
+                        <label class="form-label" data-i18n="vehicles.trips.form.label.salida_pais">{{ form.salida_pais.label }}</label>
                         {{ form.salida_pais }}
                         <div class="text-danger small">{{ form.salida_pais.errors }}</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ form.salida_provincia.label }}</label>
+                        <label class="form-label" data-i18n="vehicles.trips.form.label.salida_provincia">{{ form.salida_provincia.label }}</label>
                         {{ form.salida_provincia }}
                         <div class="text-danger small">{{ form.salida_provincia.errors }}</div>
                     </div>
                     <div class="mb-0">
-                        <label class="form-label">{{ form.salida_localidad.label }}</label>
+                        <label class="form-label" data-i18n="vehicles.trips.form.label.salida_localidad">{{ form.salida_localidad.label }}</label>
                         {{ form.salida_localidad }}
                         <div class="text-danger small">{{ form.salida_localidad.errors }}</div>
                     </div>
@@ -59,19 +63,19 @@
 
             <div class="col-md-6">
                 <div class="border rounded p-3 h-100">
-                    <h5 class="mb-3">Destino</h5>
+                    <h5 class="mb-3" data-i18n="vehicles.trips.form.section.destination">Destino</h5>
                     <div class="mb-3">
-                        <label class="form-label">{{ form.destino_pais.label }}</label>
+                        <label class="form-label" data-i18n="vehicles.trips.form.label.destino_pais">{{ form.destino_pais.label }}</label>
                         {{ form.destino_pais }}
                         <div class="text-danger small">{{ form.destino_pais.errors }}</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">{{ form.destino_provincia.label }}</label>
+                        <label class="form-label" data-i18n="vehicles.trips.form.label.destino_provincia">{{ form.destino_provincia.label }}</label>
                         {{ form.destino_provincia }}
                         <div class="text-danger small">{{ form.destino_provincia.errors }}</div>
                     </div>
                     <div class="mb-0">
-                        <label class="form-label">{{ form.destino_localidad.label }}</label>
+                        <label class="form-label" data-i18n="vehicles.trips.form.label.destino_localidad">{{ form.destino_localidad.label }}</label>
                         {{ form.destino_localidad }}
                         <div class="text-danger small">{{ form.destino_localidad.errors }}</div>
                     </div>
@@ -82,37 +86,37 @@
         <!-- Económicos -->
         <div class="row g-3 mt-3">
             <div class="col-md-3">
-                <label class="form-label">{{ form.distancia.label }}</label>
+                <label class="form-label" data-i18n="vehicles.trips.form.label.distancia">{{ form.distancia.label }}</label>
                 {{ form.distancia }}
-                <div class="form-text">Los Km que se cargan de manera automatica son APROXIMADOS.</div>
+                <div class="form-text" data-i18n="vehicles.trips.form.km_note">Los Km que se cargan de manera automatica son APROXIMADOS.</div>
                 <div class="text-danger small">{{ form.distancia.errors }}</div>
             </div>
             <div class="col-md-3">
-                <label class="form-label">{{ form.divisa.label }}</label>
+                <label class="form-label" data-i18n="vehicles.trips.form.label.divisa">{{ form.divisa.label }}</label>
                 {{ form.divisa }}
                 <div class="text-danger small">{{ form.divisa.errors }}</div>
             </div>
             <div class="col-md-3">
-                <label class="form-label">{{ form.valor_flete.label }}</label>
+                <label class="form-label" data-i18n="vehicles.trips.form.label.valor_flete">{{ form.valor_flete.label }}</label>
                 {{ form.valor_flete }}
                 <div class="text-danger small">{{ form.valor_flete.errors }}</div>
             </div>
             <div class="col-md-3">
-                <label class="form-label">{{ form.porcentaje_conductor.label }}</label>
+                <label class="form-label" data-i18n="vehicles.trips.form.label.porcentaje_conductor">{{ form.porcentaje_conductor.label }}</label>
                 {{ form.porcentaje_conductor }}
-                <div class="form-text">Porcentaje (0–100).</div>
+                <div class="form-text" data-i18n="vehicles.trips.form.driver_pct_note">Porcentaje (0–100).</div>
                 <div class="text-danger small">{{ form.porcentaje_conductor.errors }}</div>
             </div>
             <div class="col-md-3">
-                <label class="form-label">{{ form.viaticos.label }}</label>
+                <label class="form-label" data-i18n="vehicles.trips.form.label.viaticos">{{ form.viaticos.label }}</label>
                 {{ form.viaticos }}
                 <div class="text-danger small">{{ form.viaticos.errors }}</div>
             </div>
         </div>
 
         <div class="d-flex gap-2 mt-4">
-            <a class="btn btn-outline-secondary" href="{% url 'vehiculo_viajes_list' vehiculo.pk %}">Cancelar</a>
-            <button class="btn btn-success" type="submit">Guardar</button>
+            <a class="btn btn-outline-secondary" href="{% url 'vehiculo_viajes_list' vehiculo.pk %}" data-i18n="vehicles.trips.form.cancel">Cancelar</a>
+            <button class="btn btn-success" type="submit" data-i18n="vehicles.trips.form.save">Guardar</button>
         </div>
     </form>
 </div>
@@ -121,8 +125,8 @@
 <div class="card mt-4">
     <div class="card-header py-2 d-flex justify-content-between align-items-center">
         <div>
-            <strong>Vista del recorrido</strong>
-            <small class="text-muted d-block">Para rutas largas se usa segmentación automática</small>
+            <strong data-i18n="vehicles.trips.map.title">Vista del recorrido</strong>
+            <small class="text-muted d-block" data-i18n="vehicles.trips.map.subtitle">Para rutas largas se usa segmentación automática</small>
         </div>
         <div id="route-meta" class="small text-muted"></div>
     </div>

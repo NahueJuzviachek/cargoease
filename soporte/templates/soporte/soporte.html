@@ -1,19 +1,20 @@
 {% extends "home/base.html" %}
 {% load static %}
 
-{% block title %}Inicio · CargoEase{% endblock %}
+{% block title %}<span data-i18n="support.title_full">Inicio · CargoEase</span>{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
   <div class="col-12 col-lg-6">
     <div class="card shadow-sm">
       <div class="card-body">
-        <h4 class="card-title mb-3 text-center">Panel de Soporte</h4>
-        <p class="text-muted mb-4 text-center">Informanos tu problema</p>
+        <h4 class="card-title mb-3 text-center" data-i18n="support.panel.title">Panel de Soporte</h4>
+        <p class="text-muted mb-4 text-center" data-i18n="support.panel.subtitle">Informanos tu problema</p>
 
         {% if messages %}
         {% for message in messages %}
-        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">{{ message }}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">
+          {{ message }}
         </div>
         {% endfor %}
         {% endif %}
@@ -22,13 +23,11 @@
           {% csrf_token %}
 
           {% if miSoporte.non_field_errors %}
-          <div class="alert alert-danger">
-            {{ miSoporte.non_field_errors }}
-          </div>
+          <div class="alert alert-danger" data-i18n="support.form.non_field_errors">Hay errores en el formulario.</div>
           {% endif %}
 
           <div class="mb-3">
-            <label class="form-label" for="{{ miSoporte.nombre.id_for_label }}">Nombre</label>
+            <label class="form-label" for="{{ miSoporte.nombre.id_for_label }}" data-i18n="support.form.label.name">{{ miSoporte.nombre.label }}</label>
             {{ miSoporte.nombre }}
             {% if miSoporte.nombre.errors %}
             <div class="invalid-feedback d-block">{{ miSoporte.nombre.errors|striptags }}</div>
@@ -36,7 +35,7 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label" for="{{ miSoporte.email.id_for_label }}">Correo</label>
+            <label class="form-label" for="{{ miSoporte.email.id_for_label }}" data-i18n="support.form.label.email">{{ miSoporte.email.label }}</label>
             {{ miSoporte.email }}
             {% if miSoporte.email.errors %}
             <div class="invalid-feedback d-block">{{ miSoporte.email.errors|striptags }}</div>
@@ -44,7 +43,7 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label" for="{{ miSoporte.mensaje.id_for_label }}">Mensaje</label>
+            <label class="form-label" for="{{ miSoporte.mensaje.id_for_label }}" data-i18n="support.form.label.message">{{ miSoporte.mensaje.label }}</label>
             {{ miSoporte.mensaje }}
             {% if miSoporte.mensaje.errors %}
             <div class="invalid-feedback d-block">{{ miSoporte.mensaje.errors|striptags }}</div>
@@ -52,7 +51,7 @@
           </div>
 
           <div class="d-grid">
-            <button type="submit" class="btn btn-success">Enviar</button>
+            <button type="submit" class="btn btn-success" data-i18n="buttons.send">Enviar</button>
           </div>
         </form>
 

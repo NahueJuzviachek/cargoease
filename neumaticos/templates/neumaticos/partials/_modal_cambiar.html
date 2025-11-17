@@ -1,54 +1,68 @@
-<div class="modal fade" id="modalCambiar" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <form method="post" action="{% url 'neumaticos_cambiar_global' %}" class="modal-content">
-            {% csrf_token %}
-            <div class="modal-header">
-                <h5 class="modal-title">Cambiar / Reubicar Neumáticos</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" name="neumaticos_ids" id="neumaticos_ids" />
-
-                <div class="mb-3">
-                    <label class="form-label">Destino</label>
-                    <select class="form-select" name="destino" id="destinoSelect" required>
-                        <option value="" selected disabled>Elegí destino…</option>
-                        <option value="almacen">Enviar a Almacén</option>
-                        <optgroup label="Montar en vehículo">
-                            {% for item in vehiculos_ctx %}
-                            <option value="vehiculo:{{ item.vehiculo.pk }}">{{ item.vehiculo }} ({{ item.ejes }} ejes)
-                            </option>
-                            {% endfor %}
-                        </optgroup>
-                    </select>
-                </div>
-
-                <div id="grupoVehiculo" class="row g-2 d-none">
-                    <div class="col-6">
-                        <label class="form-label">Eje destino</label>
-                        <input type="number" class="form-control" name="eje_destino" min="1" placeholder="Ej: 1">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label">Posición</label>
-                        <input type="number" class="form-control" name="posicion_destino" min="1" placeholder="Ej: 1">
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Condición</label>
-                    <select class="form-select" name="tipo_condicion">
-                        <option value="">Dejar igual</option>
-                        <option value="nuevo">Nuevo</option>
-                        <option value="recapado">Recapado</option>
-                        <option value="usado">Usado</option>
-                    </select>
-                    <div class="form-text">Si elegís "Nuevo" o "Recapado", se reinician los km.</div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Confirmar</button>
-            </div>
-        </form>
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <div class="small">
+        <span class="badge bg-success" data-i18n="tyres.vehicles.badge.new">Nuevo</span>
+        <span class="badge bg-primary" data-i18n="tyres.vehicles.badge.retread">Recapado</span>
+        <span class="badge bg-warning text-dark" data-i18n="tyres.vehicles.badge.used">Usado</span>
     </div>
+</div>
+
+<div class="accordion" id="vehiculosAccordion">
+    {% for item in vehiculos_ctx %}
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="head-{{ item.vehiculo.pk }}">
+            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button"
+                data-bs-toggle="collapse" data-bs-target="#col-{{ item.vehiculo.pk }}"
+                aria-expanded="{{ forloop.first|yesno:'true,false' }}" aria-controls="col-{{ item.vehiculo.pk }}"
+                data-i18n-attr="innerHTML:tyres.vehicles.header"
+                data-i18n-options='{"vehiculo":"{{ item.vehiculo }}","ejes":"{{ item.ejes }}"}'>
+                {{ item.vehiculo }} — {{ item.ejes }} ejes
+            </button>
+        </h2>
+
+        <div id="col-{{ item.vehiculo.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+            aria-labelledby="head-{{ item.vehiculo.pk }}" data-bs-parent="#vehiculosAccordion">
+            <div class="accordion-body">
+                <div class="row g-4">
+                    {% for eje, neums in item.por_eje %}
+                    <div class="col-md-4">
+                        <h6 class="text-center mb-3"
+                            data-i18n-attr="innerHTML:tyres.vehicles.axis" data-i18n-options='{"eje":"{{ eje }}"}'>
+                            Eje {{ eje }}
+                        </h6>
+                        <div class="vstack gap-3">
+                            {% for n in neums %}
+                            <label class="border rounded p-2 d-flex align-items-center gap-2 neum-item">
+                                <input class="form-check-input select-neum" type="checkbox" value="{{ n.pk }}"
+                                    data-scope="vehiculo" data-vehiculo="{{ item.vehiculo.pk }}" data-eje="{{ eje }}"
+                                    data-pos="{{ n.nroNeumatico }}" />
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between small align-items-center">
+                                        <strong>{{ n.pk }}</strong>
+                                        <span>{{ n.km|default:0 }} km — {{ n.tipo.descripcion|default:"" }}</span>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 18px;" data-km="{{ n.km|default:0 }}"
+                                        data-tipo="{{ n.tipo.descripcion|default:''|lower }}"
+                                        data-cap-nuevo="{{ caps_por_tipo.nuevo|default:'' }}"
+                                        data-cap-recapado="{{ caps_por_tipo.recapado|default:'' }}"
+                                        data-cap-usado="{{ caps_por_tipo.usado|default:'' }}">
+                                        <div class="progress-bar" role="progressbar" aria-valuemin="0"
+                                            aria-valuemax="100">
+                                            <span class="progress-label"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                            {% empty %}
+                            <div class="text-muted small text-center" data-i18n="tyres.vehicles.empty_axis">Sin neumáticos en este eje.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-info" data-i18n="tyres.vehicles.empty_all">No hay vehículos cargados.</div>
+    {% endfor %}
 </div>
