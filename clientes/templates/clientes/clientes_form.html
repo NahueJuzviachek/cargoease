@@ -80,9 +80,14 @@
     el.appendChild(opt);
   }
 
-  // inicial placeholders
-  if (provinciaSelect) resetSelect(provinciaSelect, t('clients.form.select_province','— Seleccionar provincia —'));
-  if (localidadSelect) resetSelect(localidadSelect, t('clients.form.select_locality','— Seleccionar localidad —'));
+// Solo resetear si estamos creando un cliente nuevo (sin valores iniciales)
+if (provinciaSelect && !provinciaSelect.value) {
+    resetSelect(provinciaSelect, t('clients.form.select_province','— Seleccionar provincia —'));
+}
+
+if (localidadSelect && !localidadSelect.value) {
+    resetSelect(localidadSelect, t('clients.form.select_locality','— Seleccionar localidad —'));
+}
 
   paisSelect?.addEventListener("change", async function () {
     if (!provinciaSelect || !localidadSelect) return;
